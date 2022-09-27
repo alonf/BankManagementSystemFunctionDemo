@@ -12,7 +12,7 @@ namespace BMS.Accessors.CheckingAccount.DB
             _documentClient = documentClient;
         }
 
-        public void UpdateBalance(string accountId, decimal amount)
+        public void UpdateBalance(string requestId, string accountId, decimal amount)
         {
 
         }

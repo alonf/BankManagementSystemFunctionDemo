@@ -6,6 +6,6 @@ namespace BMS.Accessors.CheckingAccount.DB
     {
         IList<AccountTransactionInfo> GetAccountTransactionHistory(string accountId, int numberOfTransactions);
         decimal GetBalance(string accountId);
-        void UpdateBalance(string accountId, decimal amount);
+        void UpdateBalance(string requestId, string accountId, decimal amount);
     }
 }
