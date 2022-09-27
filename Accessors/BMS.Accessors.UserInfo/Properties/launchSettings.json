@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "BMS.Accessors.UserInfo": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7274",
+      "launchBrowser": false
+    }
+  }
+}
