@@ -18,9 +18,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{18EDF1A3-2174-4DD3-B37C-5098D4E3EB8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BMS.Utilities.HTTPClientHelper", "Utilities\BMS.Utilities.HTTPClientHelper\BMS.Utilities.HTTPClientHelper.csproj", "{1492EBEA-9291-42DF-944E-021BF5C86D4F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Utilities.HTTPClientHelper", "Utilities\BMS.Utilities.HTTPClientHelper\BMS.Utilities.HTTPClientHelper.csproj", "{1492EBEA-9291-42DF-944E-021BF5C86D4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BMS.Accessors.CheckingAccount", "Accessors\BMS.Accessors.CheckingAccount\BMS.Accessors.CheckingAccount.csproj", "{5746E285-8660-488B-BB36-DC2714209D11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Accessors.CheckingAccount", "Accessors\BMS.Accessors.CheckingAccount\BMS.Accessors.CheckingAccount.csproj", "{5746E285-8660-488B-BB36-DC2714209D11}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Accessors.UserInfo", "Accessors\BMS.Accessors.UserInfo\BMS.Accessors.UserInfo.csproj", "{3C871056-370F-4349-BFC9-B5F230468B63}"
 EndProject
