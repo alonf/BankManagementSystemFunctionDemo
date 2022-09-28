@@ -43,22 +43,8 @@ namespace BMS.Accessors.UserInfo
 
                 //create db if not exist
 
-                var resourceResponse = await documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = DatabaseName });
-
-                Uri databaseUri = UriFactory.CreateDatabaseUri(DatabaseName);
-                var documentCollection = new DocumentCollection
-                {
-                    Id = "UserInfo",
-                    PartitionKey = new PartitionKeyDefinition
-                    {
-                        Paths = new Collection<string> { "/email" }
-                    }
-                };
-
-                //create collection if not exist
-                await documentClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, documentCollection);
-
-                //check if the account exist
+                await InitDbIfNotExistsAsync(documentClient);
+                
                 Uri collectionUri = UriFactory.CreateDocumentCollectionUri(DatabaseName, "UserInfo");
                 var userAccountId = customerRegistrationInfo["id"].Value<string>();
                 var sql = $"SELECT * FROM c WHERE c.id = @id";
@@ -122,6 +108,24 @@ namespace BMS.Accessors.UserInfo
                 log.LogError($"RegisterCustomer: A problem occur, exception: {ex}");
                 throw; //retry
             }
+        }
+
+        private static async Task InitDbIfNotExistsAsync(DocumentClient documentClient)
+        {
+            var resourceResponse = await documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = DatabaseName });
+
+            Uri databaseUri = UriFactory.CreateDatabaseUri(DatabaseName);
+            var documentCollection = new DocumentCollection
+            {
+                Id = "UserInfo",
+                PartitionKey = new PartitionKeyDefinition
+                {
+                    Paths = new Collection<string> { "/email" }
+                }
+            };
+
+            //create collection if not exist
+            await documentClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, documentCollection);
         }
 
         private bool IsSuccessStatusCode(HttpStatusCode statusCode)

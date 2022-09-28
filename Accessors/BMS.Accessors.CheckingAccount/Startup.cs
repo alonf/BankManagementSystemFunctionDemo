@@ -5,11 +5,8 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
 
 [assembly: FunctionsStartup(typeof(BMS.Accessors.CheckingAccount.Startup))]
-
-
 
 namespace BMS.Accessors.CheckingAccount
 {
@@ -18,8 +15,7 @@ namespace BMS.Accessors.CheckingAccount
         public override void Configure(IFunctionsHostBuilder builder)
         {
             builder.Services.AddRobustHttpClient<CheckingAccountAccessor>();
-            builder.Services.AddSingleton<IAccountDBFactory, AccountDBFactory>();
-            builder.Services.AddSingleton<ITransactionDB, TransactionDB>();
+            builder.Services.AddSingleton<ICosmosDBWrapperFactory, CosmosDBWrapperFactory>();
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
                         

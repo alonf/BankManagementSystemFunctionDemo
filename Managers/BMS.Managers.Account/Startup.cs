@@ -9,9 +9,6 @@ using System;
 
 [assembly: FunctionsStartup(typeof(BMS.Managers.Account.Startup))]
 
-interface IPlaceHolder { }
-class PlaceHolder : IPlaceHolder { }
-    
 namespace BMS.Managers.Account
 {
     internal class Startup : FunctionsStartup
@@ -38,7 +35,6 @@ namespace BMS.Managers.Account
             mapperConfig.AssertConfigurationIsValid();
             builder.Services.AddSingleton(mapper);
 
-            //builder.AddSwashBuckle(Assembly.GetExecutingAssembly(), c => c.SpecVersion = OpenApiSpecVersion.OpenApi3_0);
         }
     }
 }

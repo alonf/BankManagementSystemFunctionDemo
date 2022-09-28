@@ -134,10 +134,102 @@ namespace BMS.Managers.Account
             }
         }
 
+
+        [FunctionName("GetAccountBalance")]
+        public async Task<IActionResult> GetAccountBalance(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req)
+        {
+            try
+            {
+                _logger.LogInformation("HTTP trigger GetAccountBalance function processed a request.");
+
+                var accountId = req.Query["accountId"];
+
+                if (string.IsNullOrWhiteSpace(accountId))
+                {
+                    return new BadRequestErrorMessageResult("Expecting the accountId");
+                }
+
+                var getBalanceUrl = _configuration["getBalanceUrl"];
+                if (string.IsNullOrWhiteSpace(getBalanceUrl))
+                {
+                    _logger.LogError($"Configuration error. Missing getBalanceUrl value");
+                    return new InternalServerErrorResult();
+                }
+
+                //call checking account Accessor to get the account balance
+                var uri = QueryHelpers.AddQueryString(getBalanceUrl, "accountId", accountId);
+                var balanceInfoJson = await _httpClient.GetStringAsync(uri);
+                var data = JsonConvert.DeserializeObject<Contracts.Responses.BalanceInfo>(balanceInfoJson);
+
+                _logger.LogInformation($"GetAccountBalance returned: {balanceInfoJson}");
+
+                return new OkObjectResult(data);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"GetAccountBalance: Error occurred when processing a message: {e}");
+                return new InternalServerErrorResult();
+            }
+        }
+
+
+        [FunctionName("GetAccountTransactionHistory")]
+        public async Task<IActionResult> GetAccountTransactionHistoryAsync(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req)
+        {
+            try
+            {
+                _logger.LogInformation("HTTP trigger GetAccountTransactionHistory function processed a request.");
+
+                var accountId = req.Query["accountId"];
+
+                if (string.IsNullOrWhiteSpace(accountId))
+                {
+                    return new BadRequestErrorMessageResult("Expecting the accountId");
+                }
+
+                var getAccountTransactionHistoryUrl = _configuration["getAccountTransactionHistoryUrl"];
+                if (string.IsNullOrWhiteSpace(getAccountTransactionHistoryUrl))
+                {
+                    _logger.LogError($"Configuration error. Missing getAccountTransactionHistoryUrl value");
+                    return new InternalServerErrorResult();
+                }
+
+                string numberOfTransactions = req.Query["numberOfTransactions"];
+
+                if (string.IsNullOrEmpty(numberOfTransactions))
+                {
+                    numberOfTransactions = "10"; //default
+                }
+
+
+                //call checking account Accessor to get the account balance
+                var uri = QueryHelpers.AddQueryString(getAccountTransactionHistoryUrl, new Dictionary<string, string>
+                {
+                    { "accountId", accountId },
+                    { "numberOfTransactions", numberOfTransactions }
+                });
+                    
+                var accountTransactionHistoryJson = await _httpClient.GetStringAsync(uri);
+                var data = JsonConvert.DeserializeObject<Contracts.Responses.AccountTransactionResponse[]>(accountTransactionHistoryJson);
+
+                _logger.LogInformation($"GetAccountTransactionHistory returned: {accountTransactionHistoryJson}");
+
+                return new OkObjectResult(data);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"GetAccountTransactionHistory: Error occurred when processing a message: {e}");
+                return new InternalServerErrorResult();
+            }
+        }
+        
+
         [FunctionName("Deposit")]
         public async Task<IActionResult> Deposit(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
-            [Queue("AccountTransactionQueue", Connection = "QueueConnectionString")] QueueClient accountTransactionQueue)
+            [Queue("account-transaction-queue", Connection = "QueueConnectionString")] QueueClient accountTransactionQueue)
         {
             try
             {
@@ -183,7 +275,7 @@ namespace BMS.Managers.Account
         [FunctionName("Withdraw")]
         public async Task<IActionResult> Withdraw(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
-            [Queue("AccountTransactionQueue", Connection = "QueueConnectionString")] QueueClient accountTransactionQueue)
+            [Queue("account-transaction-queue", Connection = "QueueConnectionString")] QueueClient accountTransactionQueue)
         {
             try
             {
