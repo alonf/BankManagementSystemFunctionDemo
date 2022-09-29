@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using System.Web.Http;
+using Azure.Storage.Queues;
+using Newtonsoft.Json;
 
 namespace BMS.Accessors.CheckingAccount
 {
@@ -26,26 +28,48 @@ namespace BMS.Accessors.CheckingAccount
 
         [FunctionName("UpdateAccount")]
         public async Task UpdateAccountAsync([QueueTrigger("account-transaction-queue", Connection = "QueueConnectionString")] AccountTransactionRequest requestItem,
-            [CosmosDB(
+                [CosmosDB(
                     databaseName: DatabaseName,
                     collectionName: CollectionName,
                     ConnectionStringSetting = "cosmosDBConnectionString")]
-                    DocumentClient documentClient, ILogger log)
+                    DocumentClient documentClient, 
+                [Queue("account-response-queue")] QueueClient queueClient,
+                    ILogger log)
         {
+            var responseCallBack = new AccountCallbackResponse()
+            {
+                AccountId = requestItem.AccountId,
+                RequestId = requestItem.RequestId,
+                ActionName = requestItem.Amount > 0 ? "Deposit" : "Withdraw",
+                IsSuccessful = true,
+                ResultMessage = "Account Balance Updated"
+            };
+
             try
             {
                 log.LogInformation($"UpdateAccount Queue trigger function processed request id: {requestItem.RequestId}");
 
                 var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
                 await cosmosDBWrapper.UpdateBalanceAsync(requestItem.RequestId, requestItem.AccountId, requestItem.Amount);
-                //todo: push to upstream queue on success
+
+                await EnqueueMessageAsync(queueClient, responseCallBack);
             }
             catch(Exception ex)
             {
-                //todo: push to upstream queue on failure if not a transient failure
                 log.LogError($"UpdateAccountAsync: error: {ex}");
-                throw; //retry
+                responseCallBack.IsSuccessful = false;
+                responseCallBack.ResultMessage = "Error updating the balance. Retrying";
+                await EnqueueMessageAsync(queueClient, responseCallBack); 
+
+                throw; //retry, todo: check if the error is transient to spare the retry
             }
+        }
+
+        private static async Task EnqueueMessageAsync(QueueClient queueClient, AccountCallbackResponse responseCallBack)
+        {
+            await queueClient.CreateIfNotExistsAsync();
+            var message = JsonConvert.SerializeObject(responseCallBack);
+            await queueClient.SendMessageAsync(message);
         }
 
         [FunctionName("GetBalance")]

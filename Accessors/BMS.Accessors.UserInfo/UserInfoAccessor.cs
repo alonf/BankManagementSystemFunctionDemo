@@ -1,13 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
+using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.ChangeFeedProcessor.Logging;
 using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Documents.Linq;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -27,8 +31,12 @@ namespace BMS.Accessors.UserInfo
                     databaseName: DatabaseName,
                     collectionName: CollectionName,
                     ConnectionStringSetting = "cosmosDBConnectionString")]
-                    DocumentClient documentClient, ILogger log)
+                    DocumentClient documentClient,
+                    [Queue("account-response-queue")] QueueClient queueClient,
+                    ILogger log)
         {
+            string userAccountId = "unknown";
+            string requestId = "unknown";
             try
             {
                 log.LogInformation($"RegisterCustomer: Queue trigger function processed: {myQueueItem}");
@@ -39,12 +47,13 @@ namespace BMS.Accessors.UserInfo
                 customerRegistrationInfo["id"] = customerRegistrationInfo["accountId"];
                 customerRegistrationInfo.Remove("accountId");
 
+                requestId = customerRegistrationInfo["requestId"]?.Value<string>();
                 //create db if not exist
 
                 await InitDbIfNotExistsAsync(documentClient);
                 
                 Uri collectionUri = UriFactory.CreateDocumentCollectionUri(DatabaseName, "UserInfo");
-                var userAccountId = customerRegistrationInfo["id"]?.Value<string>();
+                userAccountId = customerRegistrationInfo["id"]?.Value<string>();
               
                 var sql = "SELECT * FROM c WHERE c.id = @id";
                 var sqlQuery = new SqlQuerySpec(sql,
@@ -57,7 +66,11 @@ namespace BMS.Accessors.UserInfo
 
                 if (query.Any())
                 {
-                    //todo: notify using upstream queue that the account exist
+                    await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
+                        true, "Customer already exist",
+                        requestId,
+                        userAccountId);
+
                     log.LogInformation($"RegisterCustomer: User account id: {userAccountId} already exist");
                     return;
                 }
@@ -74,19 +87,27 @@ namespace BMS.Accessors.UserInfo
 
                 if (IsSuccessStatusCode(documentCreationResponse.StatusCode))
                 {
-                    //todo: notify using upstream queue account creation success
+                    await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
+                        true, "Customer registered successfully",
+                        requestId,
+                        userAccountId);
                     log.LogInformation("RegisterCustomer: New account created");
                     return;
                 }
                 //else
-                //todo: notify using upstream queue account creation failure
+                await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
+                    false, "Customer registered failed, retrying",
+                    requestId,
+                    userAccountId);
                 log.LogError($"RegisterCustomer: account creation failed with status code: {documentCreationResponse.StatusCode}");
             }
             catch (JSchemaValidationException schemaValidationException)
             {
                 log.LogError($"Json validation error on queued message: {schemaValidationException}");
-                //todo: notify using upstream queue that an error occurred
-                //todo: move message to dead letter queue
+                await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
+                    false, "Customer registered failed, message format incorrect",
+                    requestId,
+                    userAccountId);
             }
             catch (DocumentClientException ex)
             {
@@ -96,11 +117,18 @@ namespace BMS.Accessors.UserInfo
                     await Task.Delay(1000);
                     throw; //retry
                 }
-                //todo: notify using upstream queue about the error
+                await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
+                    false, "Customer registered failed, Database access error. Retrying",
+                    requestId,
+                    userAccountId);
             }
             catch (Exception ex)
             {
                 log.LogError($"RegisterCustomer: A problem occur, exception: {ex}");
+                await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
+                    false, "Customer registered failed, unknown server error. Retrying",
+                    requestId,
+                    userAccountId);
                 throw; //retry
             }
         }
@@ -128,6 +156,20 @@ namespace BMS.Accessors.UserInfo
             return ((int)statusCode >= 200) && ((int)statusCode <= 299);
         }
 
+        private async Task EnqueueResponseMessageAsync(QueueClient queueClient, string actionName, bool isSuccessful,  string resultMessage, string requestId, string accountId = "")
+        {
+            var responseMessage = new JObject
+            {
+                ["actionName"] = actionName,
+                ["isSuccessful"] = isSuccessful,
+                ["resultMessage"] = resultMessage,
+                ["requestId"] = requestId,
+                ["accountId"] = accountId
+            };
+
+            await queueClient.CreateIfNotExistsAsync();
+            await queueClient.SendMessageAsync(resultMessage);
+        }
 
         private void ValidateInput(JObject customerRegistrationInfo)
         {
@@ -157,7 +199,7 @@ namespace BMS.Accessors.UserInfo
         }
 
         [FunctionName("GetAccountIdByEmail")]
-        public IActionResult GetAccountIdByEmail(
+        public async Task<IActionResult> GetAccountIdByEmail(
                 [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
                 [CosmosDB(
                     databaseName: DatabaseName,
@@ -187,18 +229,23 @@ namespace BMS.Accessors.UserInfo
                         }));
 
 
-                var query = documentClient.CreateDocumentQuery(collectionUri, sqlQuery, new FeedOptions() { EnableCrossPartitionQuery = true }).ToArray();
-
-                if (!query.Any())
+                var query = documentClient.CreateDocumentQuery(collectionUri, sqlQuery, new FeedOptions() { EnableCrossPartitionQuery = true }).AsDocumentQuery();
+                
+                var accountIds = new List<string>();
+                double charge = 0.0;
+                do
                 {
-                    logger.LogError($"GetAccountIdByEmailAsync: User account id for email: {email} does not exist");
-                    return new NotFoundObjectResult(JObject.Parse("{'accountId':''}"));
-                }
+                    var result = await query.ExecuteNextAsync();
+                    var ids = result.Select(r => "'" + JObject.Parse(r.ToString())["id"].ToString() + "'").Cast<string>();
+                    accountIds.AddRange(ids);
+                    charge += result.RequestCharge;
+                } while (query.HasMoreResults);
 
-                var accountId = JObject.Parse(query[0].ToString())["id"].ToString();
-                logger.LogInformation($"GetAccountIdByEmailAsync: User account id is {accountId} for email: {email} does not exist");
+                logger.LogInformation($"GetAccountIdByEmail: Querying for account ids returned {accountIds.Count} accounts and cost {charge} RUs");
 
-                return new OkObjectResult(JObject.Parse($"{{'accountId':'{accountId}'}}"));
+                //var accountId = JObject.Parse(query[0].ToString())["id"].ToString();
+
+               return new OkObjectResult(JObject.Parse($"{{'accountIds':[{String.Join(',', accountIds)}]}}"));
             }
             catch(Exception ex)
             {

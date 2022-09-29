@@ -354,5 +354,19 @@ namespace BMS.Managers.Account
 
             return liabilityCheckResultJson["withdrawAllowed"].Value<bool>();
         }
+
+
+        [FunctionName("AccountCallbackHandler")]
+        public async Task AccountCallbackHandlerAsync(
+            [QueueTrigger("account-response-queue", Connection = "QueueConnectionString")]
+            Contracts.Requests.AccountCallbackRequest accountCallbackRequest)
+        {
+
+            _logger.LogInformation($"Received response: {accountCallbackRequest}");
+            //todo: use signalR service
+            await Task.FromResult(0);
+
+
+        }
     }
 }
