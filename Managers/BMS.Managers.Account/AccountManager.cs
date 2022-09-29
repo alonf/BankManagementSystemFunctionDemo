@@ -15,8 +15,8 @@ using System.Net.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Generic;
+using System.Globalization;
 using Newtonsoft.Json.Linq;
-using System.Reflection.Metadata.Ecma335;
 using StackExchange.Redis;
 
 namespace BMS.Managers.Account
@@ -55,7 +55,7 @@ namespace BMS.Managers.Account
                 //validate the input object
                 Validator.ValidateObject(data, new ValidationContext(data, null, null));
                 
-                //first check for idempotency
+                //first check for idem-potency
                 if (await RequestAlreadyProcessedAsync(data.RequestId))
                 {
                     _logger.LogInformation($"RegisterCustomer request id {data.RequestId} already processed");
@@ -114,7 +114,7 @@ namespace BMS.Managers.Account
                 var userAccessorUrl = _configuration["userAccessorUrl"];
                 if (string.IsNullOrWhiteSpace(userAccessorUrl))
                 {
-                    _logger.LogError($"Configuration error. Missing UserAccountUrl value");
+                    _logger.LogError("Configuration error. Missing UserAccountUrl value");
                     return new InternalServerErrorResult();
                 }
                 
@@ -125,7 +125,7 @@ namespace BMS.Managers.Account
 
                 _logger.LogInformation($"GetAccountId returned: {accountIdInfoJson}");
 
-                return new OkObjectResult(accountIdInfoJson);
+                return new OkObjectResult(data);
             }
             catch (Exception e)
             {
@@ -153,7 +153,7 @@ namespace BMS.Managers.Account
                 var getBalanceUrl = _configuration["getBalanceUrl"];
                 if (string.IsNullOrWhiteSpace(getBalanceUrl))
                 {
-                    _logger.LogError($"Configuration error. Missing getBalanceUrl value");
+                    _logger.LogError("Configuration error. Missing getBalanceUrl value");
                     return new InternalServerErrorResult();
                 }
 
@@ -192,7 +192,7 @@ namespace BMS.Managers.Account
                 var getAccountTransactionHistoryUrl = _configuration["getAccountTransactionHistoryUrl"];
                 if (string.IsNullOrWhiteSpace(getAccountTransactionHistoryUrl))
                 {
-                    _logger.LogError($"Configuration error. Missing getAccountTransactionHistoryUrl value");
+                    _logger.LogError("Configuration error. Missing getAccountTransactionHistoryUrl value");
                     return new InternalServerErrorResult();
                 }
 
@@ -242,7 +242,7 @@ namespace BMS.Managers.Account
                 //validate the input object
                 Validator.ValidateObject(data, new ValidationContext(data, null, null));
 
-                //first check for idempotency
+                //first check for idem-potency
                 if (await RequestAlreadyProcessedAsync(data.RequestId))
                 {
                     _logger.LogInformation($"Deposit request id {data.RequestId} already processed");
@@ -251,18 +251,18 @@ namespace BMS.Managers.Account
                 
                 //create a customer registration request for the User accessor
                 var accountTransactionSubmit = _mapper.Map<Contracts.Submits.AccountTransactionSubmit>(data);
-                var messagePaylod = JsonConvert.SerializeObject(accountTransactionSubmit);
+                var messagePayload = JsonConvert.SerializeObject(accountTransactionSubmit);
 
                 //push the customer registration request
                 await accountTransactionQueue.CreateIfNotExistsAsync();
-                await accountTransactionQueue.SendMessageAsync(messagePaylod);
-                _logger.LogInformation($"Deposit request added: {messagePaylod}");
+                await accountTransactionQueue.SendMessageAsync(messagePayload);
+                _logger.LogInformation($"Deposit request added: {messagePayload}");
 
                 return new OkObjectResult("Deposit request received");
             }
             catch (ValidationException validationException)
             {
-                _logger.LogError($"Deposit: Input error, validation resilt: {validationException.Message}");
+                _logger.LogError($"Deposit: Input error, validation result: {validationException.Message}");
                 return new BadRequestErrorMessageResult(validationException.Message);
             }
             catch (Exception e)
@@ -288,34 +288,35 @@ namespace BMS.Managers.Account
                 //validate the input object
                 Validator.ValidateObject(data, new ValidationContext(data, null, null));
 
-                //first check for idempotency
+                //first check for idem-potency
                 if (await RequestAlreadyProcessedAsync(data.RequestId))
                 {
                     _logger.LogInformation($"Withdraw request id {data.RequestId} already processed");
                     return new ConflictObjectResult($"Request id {data.RequestId} already processed");
                 }
 
+                //This is a naive solution, concurrent request may withdraw more monet than allowed
                 if (! await CheckLiabilityAsync(data.AccountId, data.Amount))
                 {
-                    _logger.LogInformation($"Withdraw request failed, the withdraw operation is forbidden");
+                    _logger.LogInformation("Withdraw request failed, the withdraw operation is forbidden");
                     return new BadRequestErrorMessageResult("The user is not allowed to withdraw");
                 }
                 
                 data.Amount = -data.Amount;
                 //create a customer registration request for the User accessor
                 var accountTransactionSubmit = _mapper.Map<Contracts.Submits.AccountTransactionSubmit>(data);
-                var messagePaylod = JsonConvert.SerializeObject(accountTransactionSubmit);
+                var messagePayload = JsonConvert.SerializeObject(accountTransactionSubmit);
 
                 //push the customer registration request
                 await accountTransactionQueue.CreateIfNotExistsAsync();
-                await accountTransactionQueue.SendMessageAsync(messagePaylod);
-                _logger.LogInformation($"Withdraw request added: {messagePaylod}");
+                await accountTransactionQueue.SendMessageAsync(messagePayload);
+                _logger.LogInformation($"Withdraw request added: {messagePayload}");
 
                 return new OkObjectResult("Withdraw request received");
             }
             catch (ValidationException validationException)
             {
-                _logger.LogError($"Withdraw: Input error, validation resilt: {validationException.Message}");
+                _logger.LogError($"Withdraw: Input error, validation result: {validationException.Message}");
                 return new BadRequestErrorMessageResult(validationException.Message);
             }
             catch (Exception e)
@@ -327,31 +328,31 @@ namespace BMS.Managers.Account
 
         private async Task<bool> CheckLiabilityAsync(string accountId, decimal amount)
         {
-            //Check liabilty
+            //Check liability
             var liabilityValidatorUrl = _configuration["liabilityValidatorUrl"];
             if (string.IsNullOrWhiteSpace(liabilityValidatorUrl))
             {
-                _logger.LogError($"Configuration error. Missing liabilityValidatorUrl value");
+                _logger.LogError("Configuration error. Missing liabilityValidatorUrl value");
                 throw new Exception("Configuration error. Missing liabilityValidatorUrl value");
             }
 
             var queryParameters = new Dictionary<string, string>
             {
                 {"accountId", accountId },
-                {"amount", amount.ToString() }
+                {"amount", amount.ToString(CultureInfo.InvariantCulture) }
             };
 
             var uri = QueryHelpers.AddQueryString(liabilityValidatorUrl, queryParameters);
             string liabilityCheckResultJsonText = await _httpClient.GetStringAsync(uri);
             var liabilityCheckResultJson = JObject.Parse(liabilityCheckResultJsonText);
 
-            if (!liabilityCheckResultJson.ContainsKey("result"))
+            if (!liabilityCheckResultJson.ContainsKey("withdrawAllowed"))
             {
-                _logger.LogError($"liabilityValidator result error");
-                throw new Exception("liabilityValidator result error");
+                _logger.LogError($"liabilityValidator service returned an error. Result: {liabilityCheckResultJson}");
+                throw new Exception("liabilityValidator service returned an error");
             }
 
-            return liabilityCheckResultJson["result"].Value<bool>();
+            return liabilityCheckResultJson["withdrawAllowed"].Value<bool>();
         }
     }
 }

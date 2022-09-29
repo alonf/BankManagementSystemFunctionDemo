@@ -3,15 +3,11 @@ using BMS.Accessors.CheckingAccount.Contracts.Responses;
 using BMS.Accessors.CheckingAccount.DB;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -23,9 +19,9 @@ namespace BMS.Accessors.CheckingAccount
         const string CollectionName = "AccountTransaction";
         private readonly ICosmosDBWrapperFactory _cosmosDBWrapperFactory;
 
-        public CheckingAccountAccessor(ICosmosDBWrapperFactory cosmosDBWarraperFactory)
+        public CheckingAccountAccessor(ICosmosDBWrapperFactory cosmosDBWrapperFactory)
         {
-            _cosmosDBWrapperFactory = cosmosDBWarraperFactory;
+            _cosmosDBWrapperFactory = cosmosDBWrapperFactory;
         }
 
         [FunctionName("UpdateAccount")]
@@ -42,11 +38,11 @@ namespace BMS.Accessors.CheckingAccount
 
                 var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
                 await cosmosDBWrapper.UpdateBalanceAsync(requestItem.RequestId, requestItem.AccountId, requestItem.Amount);
-                //todo: pubsub on success
+                //todo: push to upstream queue on success
             }
             catch(Exception ex)
             {
-                //todo: pubsub on failure if not transiate
+                //todo: push to upstream queue on failure if not a transient failure
                 log.LogError($"UpdateAccountAsync: error: {ex}");
                 throw; //retry
             }
@@ -82,6 +78,32 @@ namespace BMS.Accessors.CheckingAccount
             return new OkObjectResult(balanceInfo);
         }
 
+
+        [FunctionName("GetAccountInfo")]
+        public async Task<IActionResult> GetAccountInfoAsync(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
+            [CosmosDB(
+                databaseName: DatabaseName,
+                collectionName: CollectionName,
+                ConnectionStringSetting = "cosmosDBConnectionString")]
+            DocumentClient documentClient,
+            ILogger log)
+        {
+            log.LogInformation("GetAccountInfo HTTP trigger function processed a request.");
+
+            string accountId = req.Query["accountId"];
+
+            if (string.IsNullOrEmpty(accountId))
+            {
+                log.LogError("GetAccountInfo: missing account id parameter");
+                return new BadRequestErrorMessageResult("missing accountId parameter");
+            }
+
+            var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
+            var accountInfo = await cosmosDBWrapper.GetAccountInfoAsync(accountId);
+            
+            return new OkObjectResult(accountInfo);
+        }
 
         [FunctionName("GetAccountTransactionHistory")]
         public async Task<IActionResult> GetAccountTransactionHistoryAsync(

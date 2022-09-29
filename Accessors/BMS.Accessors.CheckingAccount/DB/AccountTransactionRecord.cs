@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 
 namespace BMS.Accessors.CheckingAccount.DB

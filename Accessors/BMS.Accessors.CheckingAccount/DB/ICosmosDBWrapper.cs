@@ -10,5 +10,6 @@ namespace BMS.Accessors.CheckingAccount.DB
         Task UpdateBalanceAsync(string requestId, string accountId, decimal amount);
         Task<decimal> GetAccountBalanceLowLimitAsync(string accountId);
         Task SetAccountBalanceLowLimitAsync(string accountId, decimal limit);
+        Task<AccountInfo> GetAccountInfoAsync(string accountId);
     }
 }

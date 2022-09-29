@@ -4,6 +4,7 @@
     "userAccessorUrl": "http://localhost:7274/api/GetAccountIdByEmail",
     "getBalanceUrl": "http://localhost:7042/api/GetBalance",
     "getAccountTransactionHistoryUrl": "http://localhost:7042/api/GetAccountTransactionHistory",
+    "liabilityValidatorUrl": " http://localhost:7248/api/CheckLiability",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "AzureWebJobsDashboard": "UseDevelopmentStorage=true",

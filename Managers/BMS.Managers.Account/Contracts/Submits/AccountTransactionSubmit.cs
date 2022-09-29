@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using System.ComponentModel.DataAnnotations;
-
-namespace BMS.Managers.Account.Contracts.Submits
+﻿namespace BMS.Managers.Account.Contracts.Submits
 {
     internal class AccountTransactionSubmit
     {

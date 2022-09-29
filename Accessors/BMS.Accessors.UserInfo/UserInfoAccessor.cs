@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -46,8 +44,9 @@ namespace BMS.Accessors.UserInfo
                 await InitDbIfNotExistsAsync(documentClient);
                 
                 Uri collectionUri = UriFactory.CreateDocumentCollectionUri(DatabaseName, "UserInfo");
-                var userAccountId = customerRegistrationInfo["id"].Value<string>();
-                var sql = $"SELECT * FROM c WHERE c.id = @id";
+                var userAccountId = customerRegistrationInfo["id"]?.Value<string>();
+              
+                var sql = "SELECT * FROM c WHERE c.id = @id";
                 var sqlQuery = new SqlQuerySpec(sql,
                     new SqlParameterCollection(new[] {
                             new SqlParameter("@id", userAccountId)
@@ -58,7 +57,7 @@ namespace BMS.Accessors.UserInfo
 
                 if (query.Any())
                 {
-                    //todo: notify pubsub that the acount exist
+                    //todo: notify using upstream queue that the account exist
                     log.LogInformation($"RegisterCustomer: User account id: {userAccountId} already exist");
                     return;
                 }
@@ -75,21 +74,19 @@ namespace BMS.Accessors.UserInfo
 
                 if (IsSuccessStatusCode(documentCreationResponse.StatusCode))
                 {
-                    //todo: pubsub account creation success
+                    //todo: notify using upstream queue account creation success
                     log.LogInformation("RegisterCustomer: New account created");
                     return;
                 }
                 //else
-                //todo: pubsub account creation failure
+                //todo: notify using upstream queue account creation failure
                 log.LogError($"RegisterCustomer: account creation failed with status code: {documentCreationResponse.StatusCode}");
-                return;
             }
             catch (JSchemaValidationException schemaValidationException)
             {
                 log.LogError($"Json validation error on queued message: {schemaValidationException}");
-                //todo: pubsub error
+                //todo: notify using upstream queue that an error occurred
                 //todo: move message to dead letter queue
-                return;
             }
             catch (DocumentClientException ex)
             {
@@ -99,9 +96,7 @@ namespace BMS.Accessors.UserInfo
                     await Task.Delay(1000);
                     throw; //retry
                 }
-                //todo: pubsub error
-                return;
-
+                //todo: notify using upstream queue about the error
             }
             catch (Exception ex)
             {
@@ -112,7 +107,7 @@ namespace BMS.Accessors.UserInfo
 
         private static async Task InitDbIfNotExistsAsync(DocumentClient documentClient)
         {
-            var resourceResponse = await documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = DatabaseName });
+            await documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = DatabaseName });
 
             Uri databaseUri = UriFactory.CreateDatabaseUri(DatabaseName);
             var documentCollection = new DocumentCollection
@@ -185,7 +180,7 @@ namespace BMS.Accessors.UserInfo
 
                 Uri collectionUri = UriFactory.CreateDocumentCollectionUri(DatabaseName, "UserInfo");
 
-                var sql = $"SELECT c.id FROM c WHERE c.email = @email";
+                var sql = "SELECT c.id FROM c WHERE c.email = @email";
                 var sqlQuery = new SqlQuerySpec(sql,
                     new SqlParameterCollection(new[] {
                             new SqlParameter("@email", email)

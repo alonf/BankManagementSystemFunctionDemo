@@ -5,12 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace BMS.Accessors.CheckingAccount.DB
 {
@@ -20,6 +16,7 @@ namespace BMS.Accessors.CheckingAccount.DB
         private readonly DocumentClient _documentClient;
         private readonly string _databaseName;
         private readonly ILogger _logger;
+        private bool _dbHasAlreadyInitiated;
         private const string AccountInfoName = "AccountInfo";
         private const string AccountTransactionName = "AccountTransaction";
         
@@ -28,6 +25,68 @@ namespace BMS.Accessors.CheckingAccount.DB
             _documentClient = documentClient;
             _databaseName = databaseName;
             _logger = logger;
+        }
+
+        public async Task<AccountInfo> GetAccountInfoAsync(string accountId)
+        {
+            await InitDBIfNotExistsAsync();
+
+            //find the account info document
+            Uri accountInfoCollectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, AccountInfoName);
+            var accountInfoQuery = _documentClient
+                .CreateDocumentQuery<AccountInfo>(accountInfoCollectionUri,
+                    new FeedOptions { EnableCrossPartitionQuery = true }).Where(r => r.Id == accountId)
+                .AsDocumentQuery();
+            var accountInfo = (await accountInfoQuery.ExecuteNextAsync<AccountInfo>()).FirstOrDefault();
+
+            
+            if (accountInfo != null)
+                return accountInfo;
+
+            //else, first record for the account
+
+            var firstRecord = new AccountInfo()
+            {
+                Id = accountId,
+                AccountBalance = 0,
+                OverdraftLimit = 1000 //default
+            };
+
+            try
+            {
+                //in a case of race condition, only a single document is created (id)
+                var response = await _documentClient.CreateDocumentAsync(accountInfoCollectionUri, firstRecord);
+
+                _logger.LogInformation(
+                    $"GetAccountInfoAsync: create first account, result status: {response.StatusCode} ");
+            }
+            catch (DocumentClientException ex)
+            {
+                if (ex.StatusCode != System.Net.HttpStatusCode.Conflict)
+                {
+                    _logger.LogInformation(
+                        "GetAccountInfoAsync: multiple concurrent attempts to initialize the account info record detected");
+                }
+                else
+                {
+                    _logger.LogError(
+                        $"GetAccountInfoAsync: Error creating or querying account document. Exception: {ex}");
+                    throw;
+                }
+            }
+
+            accountInfoQuery = _documentClient
+                .CreateDocumentQuery<AccountInfo>(accountInfoCollectionUri,
+                    new FeedOptions { EnableCrossPartitionQuery = true }).Where(r => r.Id == accountId)
+                .AsDocumentQuery();
+            accountInfo = (await accountInfoQuery.ExecuteNextAsync<AccountInfo>()).FirstOrDefault();
+
+            if (accountInfo != null) 
+                return accountInfo;
+
+            //else
+            _logger.LogError("GetAccountInfoAsync: Error creating or querying account document");
+            throw new Exception("Error creating account document");
         }
 
         public async Task UpdateBalanceAsync(string requestId, string accountId, decimal amount)
@@ -51,47 +110,12 @@ namespace BMS.Accessors.CheckingAccount.DB
                 _logger.LogInformation($"UpdateBalanceAsync: insert transaction to collection, result status: {response.StatusCode} ");
 
                 //find the account info document
-                Uri accountInfoCollectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, AccountInfoName);
-                var accountInfoQuery = _documentClient.CreateDocumentQuery<AccountInfo>(accountInfoCollectionUri, new FeedOptions { EnableCrossPartitionQuery = true}).Where(r => r.Id == accountId).AsDocumentQuery();
-                var accountInfo = (await accountInfoQuery.ExecuteNextAsync<AccountInfo>()).FirstOrDefault();
-                
-                //first record for the account
-                if (accountInfo == null)
-                {
-                    var firstRecord = new AccountInfo()
-                    {
-                        Id = accountId,
-                        AccountBalance = 0,
-                        OverdraftLimit = 1000 //default
-                    };
-
-                    try
-                    {
-                        //in a case of race condition, only a single document is created (id)
-                        await _documentClient.CreateDocumentAsync(accountInfoCollectionUri, firstRecord);
-
-                        _logger.LogInformation($"UpdateBalanceAsync: create first account, result status: {response.StatusCode} ");
-                    }
-                    catch(DocumentClientException ex)
-                    {
-                        if (ex.StatusCode != System.Net.HttpStatusCode.Conflict)
-                            throw;
-                    }
-
-                    accountInfoQuery = _documentClient.CreateDocumentQuery<AccountInfo>(accountInfoCollectionUri, new FeedOptions { EnableCrossPartitionQuery = true }).Where(r => r.Id == accountId).AsDocumentQuery();
-                    accountInfo = (await accountInfoQuery.ExecuteNextAsync<AccountInfo>()).FirstOrDefault();
-
-                    if (accountInfo == null)
-                    {
-                        _logger.LogError("UpdateBalanceAsync: Error creating or querying account document");
-                        throw new Exception("Error creating account document");
-                    }
-                }
+                var accountInfo = await GetAccountInfoAsync(accountId);
 
                 //check if already processed
                 if (accountInfo.AccountTransactions.Contains(transactionRecord.Id))
                 {
-                    _logger.LogError($"UpdateBalanceAsync: {transactionRecord.Id} already proccessed");
+                    _logger.LogError($"UpdateBalanceAsync: {transactionRecord.Id} already processed");
                     return;
                 }
                 accountInfo.AccountTransactions.Add(transactionRecord.Id);
@@ -110,10 +134,16 @@ namespace BMS.Accessors.CheckingAccount.DB
             }
         }
 
+
         private async Task InitDBIfNotExistsAsync()
         {
-            var resourceResponse = await _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
+            //to save some cycles when the function continue to run, this code can run concurrently
+            if (_dbHasAlreadyInitiated)
+                return;
 
+            var resourceResponse = await _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
+            _logger.LogInformation($"InitDBIfNotExistsAsync: CreateDatabaseIfNotExistsAsync status code:{resourceResponse.StatusCode}");
+            
             Uri databaseUri = UriFactory.CreateDatabaseUri(_databaseName);
             var documentCollection = new DocumentCollection
             {
@@ -125,7 +155,8 @@ namespace BMS.Accessors.CheckingAccount.DB
             };
 
             //create collection if not exist
-            await _documentClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, documentCollection);
+            var documentResourceResponse = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, documentCollection);
+            _logger.LogInformation($"InitDBIfNotExistsAsync: CreateDocumentCollectionIfNotExistsAsync for {AccountTransactionName} returned status code:{documentResourceResponse.StatusCode}");
 
             documentCollection = new DocumentCollection
             {
@@ -137,7 +168,10 @@ namespace BMS.Accessors.CheckingAccount.DB
             };
 
             //create collection if not exist
-            await _documentClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, documentCollection);
+            documentResourceResponse = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, documentCollection);
+            _logger.LogInformation($"InitDBIfNotExistsAsync: CreateDocumentCollectionIfNotExistsAsync for {AccountInfoName} returned status code:{documentResourceResponse.StatusCode}");
+
+            _dbHasAlreadyInitiated = true;
         }
 
         public async Task<IList<AccountTransactionRecord>> GetAccountTransactionHistoryAsync(string accountId, int numberOfTransactions)
@@ -159,7 +193,7 @@ namespace BMS.Accessors.CheckingAccount.DB
 
                 var transactionQuery = _documentClient
                     .CreateDocumentQuery<AccountTransactionRecord>(accountTransactionsCollectionUri,
-                        new FeedOptions { EnableCrossPartitionQuery = true }).Where(r => transactionIds.Contains(r.Id)).AsDocumentQuery<AccountTransactionRecord>();
+                        new FeedOptions { EnableCrossPartitionQuery = true }).Where(r => transactionIds.Contains(r.Id)).AsDocumentQuery();
 
                 var accountTransactions = new List<AccountTransactionRecord>();
                 double charge = 0.0;
@@ -193,14 +227,6 @@ namespace BMS.Accessors.CheckingAccount.DB
             }
 
             return accountInfo.AccountBalance;
-        }
-
-        private async Task<AccountInfo> GetAccountInfoAsync(string accountId)
-        {
-            Uri accountInfoCollectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, AccountInfoName);
-            var accountInfoQuery = _documentClient.CreateDocumentQuery<AccountInfo>(accountInfoCollectionUri, new FeedOptions { EnableCrossPartitionQuery = true }).Where(r => r.Id == accountId).AsDocumentQuery();
-            var accountInfo = (await accountInfoQuery.ExecuteNextAsync<AccountInfo>()).FirstOrDefault();
-            return accountInfo;
         }
 
         public async Task SetAccountBalanceLowLimitAsync(string accountId, decimal limit)

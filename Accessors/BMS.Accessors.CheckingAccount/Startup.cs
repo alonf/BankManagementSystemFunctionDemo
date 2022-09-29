@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using BMS.Accessors.CheckingAccount.DB;
+﻿using BMS.Accessors.CheckingAccount.DB;
 using BMS.Utilities.HTTPClientHelper;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,11 +17,6 @@ namespace BMS.Accessors.CheckingAccount
             builder.Services.AddSingleton<ICosmosDBWrapperFactory, CosmosDBWrapperFactory>();
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
-                        
-            var mapperConfig = new MapperConfiguration(mc => { mc.AddProfile(new AutoMappingProfile()); });
-            IMapper mapper = mapperConfig.CreateMapper();
-            mapperConfig.AssertConfigurationIsValid();
-            builder.Services.AddSingleton(mapper);
         }
     }
 }
