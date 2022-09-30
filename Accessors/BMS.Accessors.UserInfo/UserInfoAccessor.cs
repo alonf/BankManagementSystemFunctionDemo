@@ -15,6 +15,7 @@ using Microsoft.Azure.Documents.Linq;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 
@@ -168,7 +169,8 @@ namespace BMS.Accessors.UserInfo
             };
 
             await queueClient.CreateIfNotExistsAsync();
-            await queueClient.SendMessageAsync(resultMessage);
+            var jsonText = JsonConvert.SerializeObject(responseMessage);
+            await queueClient.SendMessageAsync(jsonText);
         }
 
         private void ValidateInput(JObject customerRegistrationInfo)
