@@ -1,4 +1,4 @@
-﻿namespace BMS.Managers.Account.Contracts.Requests;
+﻿namespace BMS.Tests.IntegrationTests.Contracts;
 
 public class AccountCallbackRequest
 {

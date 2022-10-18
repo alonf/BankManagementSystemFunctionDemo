@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Generic;
 using System.Globalization;
+using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 
@@ -29,7 +30,7 @@ namespace BMS.Managers.Account
         private readonly IConnectionMultiplexer _connectionMultiplexer;
         private readonly ILogger<AccountManager> _logger;
 
-        public AccountManager(IMapper mapper, HttpClient httpClient, 
+        public AccountManager(IMapper mapper, HttpClient httpClient,
             IConfiguration configuration, IConnectionMultiplexer connectionMultiplexer, ILogger<AccountManager> logger)
         {
             _mapper = mapper;
@@ -38,11 +39,13 @@ namespace BMS.Managers.Account
             _connectionMultiplexer = connectionMultiplexer;
             _logger = logger;
         }
-        
+
         [FunctionName("RegisterCustomer")]
         public async Task<IActionResult> RegisterCustomer(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
-            [Queue("customer-registration-queue", Connection = "QueueConnectionString")] QueueClient customerRegistrationQueue)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
+            HttpRequest req,
+            [Queue("customer-registration-queue", Connection = "QueueConnectionString")]
+            QueueClient customerRegistrationQueue)
         {
             try
             {
@@ -51,26 +54,26 @@ namespace BMS.Managers.Account
                 //extract request from the body
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 var data = JsonConvert.DeserializeObject<Contracts.Requests.CustomerRegistrationInfo>(requestBody);
-                
+
                 //validate the input object
                 Validator.ValidateObject(data, new ValidationContext(data, null, null));
-                
+
                 //first check for idem-potency
                 if (await RequestAlreadyProcessedAsync(data.RequestId))
                 {
                     _logger.LogInformation($"RegisterCustomer request id {data.RequestId} already processed");
                     return new ConflictObjectResult($"Request id {data.RequestId} already processed");
                 }
-                
+
                 //create a customer registration request for the User accessor
                 var customerRegistrationInfoSubmit = _mapper.Map<Contracts.Submits.CustomerRegistrationInfo>(data);
                 var messagePayload = JsonConvert.SerializeObject(customerRegistrationInfoSubmit);
-                
+
                 //push the customer registration request
                 await customerRegistrationQueue.CreateIfNotExistsAsync();
                 await customerRegistrationQueue.SendMessageAsync(messagePayload);
                 _logger.LogInformation($"RegisterCustomer request added: {messagePayload}");
-                
+
                 return new OkObjectResult("Register customer request received");
             }
             catch (ValidationException validationException)
@@ -92,20 +95,21 @@ namespace BMS.Managers.Account
             tran.AddCondition(Condition.KeyNotExists(requestId));
             _ = tran.StringSetAsync(requestId, "true", TimeSpan.FromMinutes(5), When.NotExists);
             bool committed = await tran.ExecuteAsync();
-           
+
             return !committed;
         }
 
         [FunctionName("GetAccountId")]
         public async Task<IActionResult> GetAccountId(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
+            HttpRequest req)
         {
             try
             {
                 _logger.LogInformation("HTTP trigger GetAccountId function processed a request.");
 
                 var email = req.Query["email"];
-                
+
                 if (string.IsNullOrWhiteSpace(email))
                 {
                     return new BadRequestErrorMessageResult("Expecting the account owner email address");
@@ -117,7 +121,7 @@ namespace BMS.Managers.Account
                     _logger.LogError("Configuration error. Missing UserAccountUrl value");
                     return new InternalServerErrorResult();
                 }
-                
+
                 //call User Info Accessor to get the user info
                 var uri = QueryHelpers.AddQueryString(userAccessorUrl, "email", email);
                 string accountIdInfoJson = await _httpClient.GetStringAsync(uri);
@@ -137,7 +141,8 @@ namespace BMS.Managers.Account
 
         [FunctionName("GetAccountBalance")]
         public async Task<IActionResult> GetAccountBalance(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
+            HttpRequest req)
         {
             try
             {
@@ -176,7 +181,8 @@ namespace BMS.Managers.Account
 
         [FunctionName("GetAccountTransactionHistory")]
         public async Task<IActionResult> GetAccountTransactionHistoryAsync(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
+            HttpRequest req)
         {
             try
             {
@@ -210,9 +216,11 @@ namespace BMS.Managers.Account
                     { "accountId", accountId },
                     { "numberOfTransactions", numberOfTransactions }
                 });
-                    
+
                 var accountTransactionHistoryJson = await _httpClient.GetStringAsync(uri);
-                var data = JsonConvert.DeserializeObject<Contracts.Responses.AccountTransactionResponse[]>(accountTransactionHistoryJson);
+                var data =
+                    JsonConvert.DeserializeObject<Contracts.Responses.AccountTransactionResponse[]>(
+                        accountTransactionHistoryJson);
 
                 _logger.LogInformation($"GetAccountTransactionHistory returned: {accountTransactionHistoryJson}");
 
@@ -224,12 +232,14 @@ namespace BMS.Managers.Account
                 return new InternalServerErrorResult();
             }
         }
-        
+
 
         [FunctionName("Deposit")]
         public async Task<IActionResult> Deposit(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
-            [Queue("account-transaction-queue", Connection = "QueueConnectionString")] QueueClient accountTransactionQueue)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
+            HttpRequest req,
+            [Queue("account-transaction-queue", Connection = "QueueConnectionString")]
+            QueueClient accountTransactionQueue)
         {
             try
             {
@@ -248,7 +258,7 @@ namespace BMS.Managers.Account
                     _logger.LogInformation($"Deposit request id {data.RequestId} already processed");
                     return new ConflictObjectResult($"Request id {data.RequestId} already processed");
                 }
-                
+
                 //create a customer registration request for the User accessor
                 var accountTransactionSubmit = _mapper.Map<Contracts.Submits.AccountTransactionSubmit>(data);
                 var messagePayload = JsonConvert.SerializeObject(accountTransactionSubmit);
@@ -274,8 +284,10 @@ namespace BMS.Managers.Account
 
         [FunctionName("Withdraw")]
         public async Task<IActionResult> Withdraw(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
-            [Queue("account-transaction-queue", Connection = "QueueConnectionString")] QueueClient accountTransactionQueue)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
+            HttpRequest req,
+            [Queue("account-transaction-queue", Connection = "QueueConnectionString")]
+            QueueClient accountTransactionQueue)
         {
             try
             {
@@ -296,12 +308,12 @@ namespace BMS.Managers.Account
                 }
 
                 //This is a naive solution, concurrent request may withdraw more monet than allowed
-                if (! await CheckLiabilityAsync(data.AccountId, data.Amount))
+                if (!await CheckLiabilityAsync(data.AccountId, data.Amount))
                 {
                     _logger.LogInformation("Withdraw request failed, the withdraw operation is forbidden");
                     return new BadRequestErrorMessageResult("The user is not allowed to withdraw");
                 }
-                
+
                 data.Amount = -data.Amount;
                 //create a customer registration request for the User accessor
                 var accountTransactionSubmit = _mapper.Map<Contracts.Submits.AccountTransactionSubmit>(data);
@@ -338,8 +350,8 @@ namespace BMS.Managers.Account
 
             var queryParameters = new Dictionary<string, string>
             {
-                {"accountId", accountId },
-                {"amount", amount.ToString(CultureInfo.InvariantCulture) }
+                { "accountId", accountId },
+                { "amount", amount.ToString(CultureInfo.InvariantCulture) }
             };
 
             var uri = QueryHelpers.AddQueryString(liabilityValidatorUrl, queryParameters);
@@ -359,14 +371,61 @@ namespace BMS.Managers.Account
         [FunctionName("AccountCallbackHandler")]
         public async Task AccountCallbackHandlerAsync(
             [QueueTrigger("account-response-queue", Connection = "QueueConnectionString")]
-            Contracts.Requests.AccountCallbackRequest accountCallbackRequest)
+            Contracts.Requests.AccountCallbackRequest accountCallbackRequest,
+            [SignalR(HubName = "account-manager-callback")]
+            IAsyncCollector<SignalRMessage> signalRMessages)
         {
 
             _logger.LogInformation($"Received response: {accountCallbackRequest}");
-            //todo: use signalR service
-            await Task.FromResult(0);
-
+            await signalRMessages.AddAsync(
+                new SignalRMessage
+                {
+                    // the message will only be sent to this user ID
+                    //UserId = accountCallbackRequest.CallerId,
+                    Target = "accountCallback",
+                    Arguments = new object[] { accountCallbackRequest }
+                });
 
         }
+
+        //azure SignalR service registration support
+        [FunctionName("negotiate")]
+        public static IActionResult Negotiate(
+            [HttpTrigger(AuthorizationLevel.Anonymous)]
+            HttpRequest req,
+            [SignalRConnectionInfo(HubName = "account-manager-callback")]
+            SignalRConnectionInfo connectionInfo, ILogger log)
+
+        {
+            try
+            {
+                log.LogInformation("the Negotiate begins");
+                if (!req.HttpContext.Response.Headers.ContainsKey("Access-Control-Allow-Credentials"))
+                {
+                    req.HttpContext.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+                }
+
+                if (req.Headers.ContainsKey("Origin") &&
+                    !req.HttpContext.Response.Headers.ContainsKey("Access-Control-Allow-Origin"))
+                {
+                    req.HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", req.Headers["Origin"][0]);
+                }
+
+                if (req.Headers.ContainsKey("Access-Control-Request-Headers"))
+                {
+                    req.HttpContext.Response.Headers.Add("Access-Control-Allow-Headers",
+                        req.Headers["access-control-request-headers"][0]);
+                }
+
+                log.LogInformation("negotiate API succeeded.");
+                return new OkObjectResult(connectionInfo);
+            }
+            catch (Exception ex)
+            {
+                log.LogInformation($"Negotiate error: {ex.Message}");
+                return new BadRequestResult();
+            }
+        }
+
     }
 }

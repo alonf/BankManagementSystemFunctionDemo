@@ -8,6 +8,9 @@ namespace BMS.Managers.Account.Contracts.Requests
         [Required(ErrorMessage = "The RequestId is missing")]
         public string RequestId { get; set; }
 
+        [Required(ErrorMessage = "The callerId is required to enable upstream callback filtering")]
+        public string CallerId { get; set; }  
+
         [ValidateNever]
         public string SchemaVersion { get; set; } = "1.0";
 

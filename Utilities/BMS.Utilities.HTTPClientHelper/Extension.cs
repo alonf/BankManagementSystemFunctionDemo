@@ -10,21 +10,28 @@ namespace BMS.Utilities.HTTPClientHelper
         private static readonly Random _jitterer = new Random();
         public static IHttpClientBuilder AddRobustHttpClient<TClient, TImplementation>(
             this IServiceCollection services, int retryCount = 5, 
-            int handledEventsAllowedBeforeBreaking = 5, int durationOfBreakInSeconds = 30) 
+            int handledEventsAllowedBeforeBreaking = 5, int durationOfBreakInSeconds = 30, string? baseUrl = null) 
             where TClient : class where TImplementation : class, TClient
         {
-            return services.AddHttpClient<TClient, TImplementation>()
+            var httpClientBuilder = baseUrl != null ?
+                services.AddHttpClient<TClient, TImplementation>(typeof(TClient).Name, c => c.BaseAddress = new Uri(baseUrl)) :
+                services.AddHttpClient<TClient, TImplementation>();
+
+            return httpClientBuilder
                 .AddPolicyHandler(GetRetryPolicy(retryCount))
                 .AddPolicyHandler(GetCircuitBreakerPolicy(handledEventsAllowedBeforeBreaking, durationOfBreakInSeconds));
         }
 
         public static IHttpClientBuilder AddRobustHttpClient<TClient>(
             this IServiceCollection services, int retryCount = 5,
-            int handledEventsAllowedBeforeBreaking = 5, int durationOfBreakInSeconds = 30)
+            int handledEventsAllowedBeforeBreaking = 5, int durationOfBreakInSeconds = 30, string? baseUrl = null)
             where TClient : class
         {
-            return services.AddHttpClient<TClient>()
-                .AddPolicyHandler(GetRetryPolicy(retryCount))
+            var httpClientBuilder = baseUrl != null ?
+                services.AddHttpClient<TClient>(typeof(TClient).Name,c => c.BaseAddress = new Uri(baseUrl)) :
+                services.AddHttpClient<TClient>();
+
+            return httpClientBuilder.AddPolicyHandler(GetRetryPolicy(retryCount))
                 .AddPolicyHandler(GetCircuitBreakerPolicy(handledEventsAllowedBeforeBreaking, durationOfBreakInSeconds));
         }
 

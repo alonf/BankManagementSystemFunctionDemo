@@ -9,7 +9,6 @@ using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.ChangeFeedProcessor.Logging;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Azure.WebJobs;
@@ -38,6 +37,7 @@ namespace BMS.Accessors.UserInfo
         {
             string userAccountId = "unknown";
             string requestId = "unknown";
+            string callerId = "unknown";
             try
             {
                 log.LogInformation($"RegisterCustomer: Queue trigger function processed: {myQueueItem}");
@@ -49,6 +49,9 @@ namespace BMS.Accessors.UserInfo
                 customerRegistrationInfo.Remove("accountId");
 
                 requestId = customerRegistrationInfo["requestId"]?.Value<string>();
+                callerId = customerRegistrationInfo["callerId"]?.Value<string>();
+
+
                 //create db if not exist
 
                 await InitDbIfNotExistsAsync(documentClient);
@@ -70,6 +73,7 @@ namespace BMS.Accessors.UserInfo
                     await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
                         true, "Customer already exist",
                         requestId,
+                        callerId,
                         userAccountId);
 
                     log.LogInformation($"RegisterCustomer: User account id: {userAccountId} already exist");
@@ -91,6 +95,7 @@ namespace BMS.Accessors.UserInfo
                     await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
                         true, "Customer registered successfully",
                         requestId,
+                        callerId,
                         userAccountId);
                     log.LogInformation("RegisterCustomer: New account created");
                     return;
@@ -99,6 +104,7 @@ namespace BMS.Accessors.UserInfo
                 await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
                     false, "Customer registered failed, retrying",
                     requestId,
+                    callerId,
                     userAccountId);
                 log.LogError($"RegisterCustomer: account creation failed with status code: {documentCreationResponse.StatusCode}");
             }
@@ -108,6 +114,7 @@ namespace BMS.Accessors.UserInfo
                 await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
                     false, "Customer registered failed, message format incorrect",
                     requestId,
+                    callerId,
                     userAccountId);
             }
             catch (DocumentClientException ex)
@@ -121,6 +128,7 @@ namespace BMS.Accessors.UserInfo
                 await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
                     false, "Customer registered failed, Database access error. Retrying",
                     requestId,
+                    callerId,
                     userAccountId);
             }
             catch (Exception ex)
@@ -129,6 +137,7 @@ namespace BMS.Accessors.UserInfo
                 await EnqueueResponseMessageAsync(queueClient, "RegisterCustomer",
                     false, "Customer registered failed, unknown server error. Retrying",
                     requestId,
+                    callerId,
                     userAccountId);
                 throw; //retry
             }
@@ -157,7 +166,8 @@ namespace BMS.Accessors.UserInfo
             return ((int)statusCode >= 200) && ((int)statusCode <= 299);
         }
 
-        private async Task EnqueueResponseMessageAsync(QueueClient queueClient, string actionName, bool isSuccessful,  string resultMessage, string requestId, string accountId = "")
+        private async Task EnqueueResponseMessageAsync(QueueClient queueClient, string actionName, bool isSuccessful,
+            string resultMessage, string requestId, string callerId, string accountId = "")
         {
             var responseMessage = new JObject
             {
@@ -165,6 +175,7 @@ namespace BMS.Accessors.UserInfo
                 ["isSuccessful"] = isSuccessful,
                 ["resultMessage"] = resultMessage,
                 ["requestId"] = requestId,
+                ["callerId"] = callerId,
                 ["accountId"] = accountId
             };
 
