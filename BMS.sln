@@ -10,6 +10,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Accessors", "Accessors", "{1FE47122-C554-4746-A027-2CC4D812EC46}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Engines", "Engines", "{90142AB1-6E89-49B8-AE05-AE3326B7A7C9}"
+	ProjectSection(SolutionItems) = preProject
+		settings.json = settings.json
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{86DA98F7-8D17-4750-BE20-3BA55ADE3EA8}"
 	ProjectSection(SolutionItems) = preProject
