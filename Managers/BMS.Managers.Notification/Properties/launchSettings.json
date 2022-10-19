@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "BMS.Managers.Notification": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7043",
+      "launchBrowser": false
+    }
+  }
+}

@@ -29,7 +29,23 @@ namespace BMS.Managers.Account
 
             var connectionMultiplexer = ConnectionMultiplexer.Connect(redisConnectionString);
             builder.Services.AddSingleton<IConnectionMultiplexer>(connectionMultiplexer);
+
+            var defaultCorsPolicyName = "myAllowSpecificOrigins";
             
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(defaultCorsPolicyName, b =>
+                {
+                    //App:CorsOrigins in appsettings.json can contain more than one address with split by comma.
+                    b.SetIsOriginAllowed((_) => true)
+                     .SetIsOriginAllowedToAllowWildcardSubdomains()
+                     .AllowAnyHeader()
+                     .AllowAnyMethod()
+                     .AllowCredentials()
+                     .WithHeaders("Access-Control-Allow-Origin", "*");
+                });
+            });
+
             var mapperConfig = new MapperConfiguration(mc => { mc.AddProfile(new AutoMappingProfile()); });
             IMapper mapper = mapperConfig.CreateMapper();
             mapperConfig.AssertConfigurationIsValid();

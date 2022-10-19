@@ -1,4 +1,7 @@
-﻿namespace BMS.Tests.IntegrationTests.Contracts;
+﻿using System.ComponentModel.DataAnnotations;
+using Xunit.Sdk;
+
+namespace BMS.Tests.IntegrationTests.Contracts;
 
 public class CustomerRegistrationInfo
 {

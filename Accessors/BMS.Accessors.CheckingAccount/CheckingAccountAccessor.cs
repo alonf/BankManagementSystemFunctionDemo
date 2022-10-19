@@ -33,7 +33,7 @@ namespace BMS.Accessors.CheckingAccount
                     collectionName: CollectionName,
                     ConnectionStringSetting = "cosmosDBConnectionString")]
                     DocumentClient documentClient, 
-                [Queue("account-response-queue")] QueueClient queueClient,
+                [Queue("client-response-queue")] QueueClient queueClient,
                     ILogger log)
         {
             var responseCallBack = new AccountCallbackResponse()

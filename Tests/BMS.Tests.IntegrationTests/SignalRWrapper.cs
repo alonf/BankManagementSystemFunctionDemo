@@ -16,10 +16,10 @@ public class SignalRWrapper : ISignalRWrapper
     {
         var signalRUrl = Environment.GetEnvironmentVariable("BMS_SIGNALR_URL");
         if (string.IsNullOrEmpty(signalRUrl))
-            signalRUrl = "http://localhost:7071/api/";
+            signalRUrl = "http://localhost:7043/api/";
 
         _signalRHubConnection = new HubConnectionBuilder()
-            .WithUrl(signalRUrl, c=>c.Headers.Add("x-ms-client-principal-id","Teller1"))
+            .WithUrl(signalRUrl, c=>c.Headers.Add("x-application-user-id", "Teller1"))
             .WithAutomaticReconnect().ConfigureLogging(lb =>
             {
                 lb.AddProvider(new XUnitLoggerProvider(testOutputHelper));
@@ -38,18 +38,12 @@ public class SignalRWrapper : ISignalRWrapper
 
         await _signalRHubConnection.StartAsync();
 
-        _signalRHubConnection.On<string, object>("accountCallback", (user, message) =>
+        _signalRHubConnection.On<AccountCallbackRequest>("accountcallback", message =>
         {
             
-            //_signalRMessagesReceived.Add(result);
+            _signalRMessagesReceived.Add(message);
             _signalRMessageReceived.Release();
         });
-
-        //_signalRHubConnection.On(nameof(Object), "accountCallback", result =>
-        //{
-        //    //_signalRMessagesReceived.Add(result);
-        //    _signalRMessageReceived.Release();
-        //});
     }
 
     async Task<bool> ISignalRWrapper.WaitForSignalREventAsync(int timeoutInSeconds)

@@ -368,64 +368,64 @@ namespace BMS.Managers.Account
         }
 
 
-        [FunctionName("AccountCallbackHandler")]
-        public async Task AccountCallbackHandlerAsync(
-            [QueueTrigger("account-response-queue", Connection = "QueueConnectionString")]
-            Contracts.Requests.AccountCallbackRequest accountCallbackRequest,
-            [SignalR(HubName = "account-manager-callback")]
-            IAsyncCollector<SignalRMessage> signalRMessages)
-        {
+        //[FunctionName("AccountCallbackHandler")]
+        //public async Task AccountCallbackHandlerAsync(
+        //    [QueueTrigger("client-response-queue", Connection = "QueueConnectionString")]
+        //    Contracts.Requests.AccountCallbackRequest accountCallbackRequest,
+        //    [SignalR(HubName = "accountmanagercallback")]
+        //    IAsyncCollector<SignalRMessage> signalRMessages)
+        //{
 
-            _logger.LogInformation($"Received response: {accountCallbackRequest}");
-            await signalRMessages.AddAsync(
-                new SignalRMessage
-                {
-                    // the message will only be sent to this user ID
-                    //UserId = accountCallbackRequest.CallerId,
-                    Target = "accountCallback",
-                    Arguments = new object[] { accountCallbackRequest }
-                });
+        //    _logger.LogInformation($"Received response: {accountCallbackRequest}");
+        //    await signalRMessages.AddAsync(
+        //        new SignalRMessage
+        //        {
+        //            // the message will only be sent to this user ID
+        //            //UserId = accountCallbackRequest.CallerId,
+        //            Target = "accountCallback",
+        //            Arguments = new[] { "a"/*accountCallbackRequest*/ }
+        //        });
 
-        }
+        //}
 
         //azure SignalR service registration support
-        [FunctionName("negotiate")]
-        public static IActionResult Negotiate(
-            [HttpTrigger(AuthorizationLevel.Anonymous)]
-            HttpRequest req,
-            [SignalRConnectionInfo(HubName = "account-manager-callback")]
-            SignalRConnectionInfo connectionInfo, ILogger log)
+        //[FunctionName("negotiate")]
+        //public static IActionResult Negotiate(
+        //    [HttpTrigger(AuthorizationLevel.Anonymous)]
+        //    HttpRequest req,
+        //    [SignalRConnectionInfo(HubName = "accountmanagercallback",  UserId = "{headers.x-application-user-id}")]
+        //    SignalRConnectionInfo connectionInfo, ILogger log)
 
-        {
-            try
-            {
-                log.LogInformation("the Negotiate begins");
-                if (!req.HttpContext.Response.Headers.ContainsKey("Access-Control-Allow-Credentials"))
-                {
-                    req.HttpContext.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
-                }
+        //{
+        //    try
+        //    {
+        //        log.LogInformation("the Negotiate begins");
+        //        if (!req.HttpContext.Response.Headers.ContainsKey("Access-Control-Allow-Credentials"))
+        //        {
+        //            req.HttpContext.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+        //        }
 
-                if (req.Headers.ContainsKey("Origin") &&
-                    !req.HttpContext.Response.Headers.ContainsKey("Access-Control-Allow-Origin"))
-                {
-                    req.HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", req.Headers["Origin"][0]);
-                }
+        //        if (req.Headers.ContainsKey("Origin") &&
+        //            !req.HttpContext.Response.Headers.ContainsKey("Access-Control-Allow-Origin"))
+        //        {
+        //            req.HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", req.Headers["Origin"][0]);
+        //        }
 
-                if (req.Headers.ContainsKey("Access-Control-Request-Headers"))
-                {
-                    req.HttpContext.Response.Headers.Add("Access-Control-Allow-Headers",
-                        req.Headers["access-control-request-headers"][0]);
-                }
+        //        if (req.Headers.ContainsKey("Access-Control-Request-Headers"))
+        //        {
+        //            req.HttpContext.Response.Headers.Add("Access-Control-Allow-Headers",
+        //                req.Headers["access-control-request-headers"][0]);
+        //        }
 
-                log.LogInformation("negotiate API succeeded.");
-                return new OkObjectResult(connectionInfo);
-            }
-            catch (Exception ex)
-            {
-                log.LogInformation($"Negotiate error: {ex.Message}");
-                return new BadRequestResult();
-            }
-        }
+        //        log.LogInformation("negotiate API succeeded.");
+        //        return new OkObjectResult(connectionInfo);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        log.LogInformation($"Negotiate error: {ex.Message}");
+        //        return new BadRequestResult();
+        //    }
+        //}
 
     }
 }
