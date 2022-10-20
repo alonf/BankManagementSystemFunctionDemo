@@ -90,7 +90,7 @@ namespace BMS.Accessors.CheckingAccount
            {
                 log.LogError("GetBalance: missing account id parameter");
                 return new BadRequestErrorMessageResult("missing accountId parameter");
-            }
+           }
 
             var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
             var balance = await cosmosDBWrapper.GetBalanceAsync(accountId);
@@ -145,7 +145,7 @@ namespace BMS.Accessors.CheckingAccount
 
             if (string.IsNullOrEmpty(accountId))
             {
-                log.LogError("GetBalance: missing account id parameter");
+                log.LogError("GetAccountTransactionHistory: missing account id parameter");
                 return new BadRequestErrorMessageResult("missing accountId parameter");
             }
             
@@ -153,7 +153,7 @@ namespace BMS.Accessors.CheckingAccount
 
             if (string.IsNullOrEmpty(numberOfTransactionsText))
             {
-                log.LogError("GetBalance: missing numberOfTransactions parameter");
+                log.LogError("GetAccountTransactionHistory: missing numberOfTransactions parameter");
                 return new BadRequestErrorMessageResult("missing numberOfTransactions parameter");
             }
             
