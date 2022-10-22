@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace BMS.Accessors.CheckingAccount.DB
 {
@@ -7,6 +8,8 @@ namespace BMS.Accessors.CheckingAccount.DB
     {
         [JsonProperty("id")]
         public string Id { get; set; } //account id
+        [JsonPropertyName("bankId")]
+        public string BankId { get; set; } = "The Bank";
         [JsonProperty("accountBalance")]
         public decimal AccountBalance { get; set; }
         [JsonProperty("overdraftLimit")]

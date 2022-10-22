@@ -256,8 +256,6 @@ namespace BMS.Accessors.UserInfo
 
                 logger.LogInformation($"GetAccountIdByEmail: Querying for account ids returned {accountIds.Count} accounts and cost {charge} RUs");
 
-                //var accountId = JObject.Parse(query[0].ToString())["id"].ToString();
-
                return new OkObjectResult(JObject.Parse($"{{'accountIds':[{String.Join(',', accountIds)}]}}"));
             }
             catch(Exception ex)

@@ -163,7 +163,7 @@ namespace BMS.Accessors.CheckingAccount.DB
                 Id = AccountInfoName,
                 PartitionKey = new PartitionKeyDefinition
                 {
-                    Paths = new Collection<string> { "/overdraftLimit" }
+                    Paths = new Collection<string> { "/bankId" }
                 }
             };
 
