@@ -1,0 +1,34 @@
+name: Deploy Azure Container Apps Environment
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Azure CLI script
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.30.0
+        inlineScript: |
+          az account show
+          az group create --name bms-cont-app-rg --location eastus2
+          #use this command and paste the output to the AZURE_CREDENTIALS secret
+          #az ad sp create-for-rbac --name "bms" --role contributor --scopes /subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/bms-cont-app-rg --sdk-auth
+          az deployment group create --resource-group bms-cont-app-rg --template-file infra/main.bicep \
+            --parameters branchName='master' \
+            cosmosDBConnectionString="${{secrets.BMSD_COSMOSDB_CONNECTION_STRING}}" \
+            cosmosDbUrl=${{secrets.COSMOSDB_URL}} \
+            cosmosDBKey="${{secrets.COSMOSDB_KEY}}" \
+            cosmosDBDatabaseName=BMSDB 
+            
+         

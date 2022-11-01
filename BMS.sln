@@ -42,6 +42,30 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LocalEnv", "LocalEnv", "{23
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{9BB97CEA-130B-4208-ADED-6DBEB5282C85}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infra", "Infra", "{8CBEA9D3-9231-42DF-A821-3CC5767D5C94}"
+	ProjectSection(SolutionItems) = preProject
+		infra\main.bicep = infra\main.bicep
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{C9833D90-B0B8-4545-A43C-57053B6A2024}"
+	ProjectSection(SolutionItems) = preProject
+		infra\modules\comosdb.bicep = infra\modules\comosdb.bicep
+		infra\modules\functions-app.bicep = infra\modules\functions-app.bicep
+		infra\modules\identity.bicep = infra\modules\identity.bicep
+		infra\modules\functions-app-infra.bicep = infra\modules\functions-app-infra.bicep
+		infra\modules\keyvault.bicep = infra\modules\keyvault.bicep
+		infra\modules\servicebus.bicep = infra\modules\servicebus.bicep
+		infra\modules\signalr.bicep = infra\modules\signalr.bicep
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{6173D423-2F1B-4449-B270-112E17587821}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\DeployFunctionsApps.yml = .github\workflows\DeployFunctionsApps.yml
+		.github\workflows\FullCICD.yml = .github\workflows\FullCICD.yml
+		.github\workflows\FunctionsAppsIntegrationTest.yml = .github\workflows\FunctionsAppsIntegrationTest.yml
+		.github\workflows\IntegrationTest.yml = .github\workflows\IntegrationTest.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -92,6 +116,7 @@ Global
 		{3B3AC8DB-B0DD-40FA-916B-A4C1CB1CD91E} = {90142AB1-6E89-49B8-AE05-AE3326B7A7C9}
 		{A583C881-CE7B-45FB-BEFE-0D1843A0C9B1} = {18EDF1A3-2174-4DD3-B37C-5098D4E3EB8E}
 		{087A5628-86D9-4E87-A461-E832B469F78B} = {24039E6E-7A1B-4D67-866A-26DC681990C4}
+		{C9833D90-B0B8-4545-A43C-57053B6A2024} = {8CBEA9D3-9231-42DF-A821-3CC5767D5C94}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3BDD7DDB-C5E5-4460-BFD8-4275C0C31DCA}
