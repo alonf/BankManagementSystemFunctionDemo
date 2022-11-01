@@ -7,7 +7,7 @@ services:
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     hostname: azurite
-    command: "azurite-queue --queueHost 0.0.0.0 --loose --skipApiVersionCheck -d /tmp/azurite_debug.log"
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0  --loose --skipApiVersionCheck -d /tmp/azurite_debug.log"
     ports:
      - "10000:10000"
      - "10001:10001"
@@ -17,34 +17,34 @@ services:
   ####################
   # CosmosDB emulator
   ####################
-  cosmosdb:
-    container_name: cosmosdb
-    image: "mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator"
-    tty: true
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
-    environment:
-      - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10
-      - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
-    ports:
-       - "8081:8081"
-       - "8900:8900"
-       - "8901:8901"
-       - "8979:8979"
-       - "10250:10250"
-       - "10251:10251"
-       - "10252:10252"
-       - "10253:10253"
-       - "10254:10254"
-       - "10255:10255"
-       - "10256:10256"
-       - "10350:10350"
-    volumes:
-       - vol_cosmos:/data/db
+  #cosmosdb:
+  #  container_name: cosmosdb
+  #  image: "mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator"
+  #  tty: true
+  #  restart: always
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        cpus: '1'
+  #        memory: 2G
+  #  environment:
+  #    - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10
+  #    - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
+  #  ports:
+  #     - "8081:8081"
+  #     - "8900:8900"
+  #     - "8901:8901"
+  #     - "8979:8979"
+  #     - "10250:10250"
+  #     - "10251:10251"
+  #     - "10252:10252"
+  #     - "10253:10253"
+  #     - "10254:10254"
+  #     - "10255:10255"
+  #     - "10256:10256"
+  #     - "10350:10350"
+  #  volumes:
+  #     - vol_cosmos:/data/db
 
   ############################
   # Redis state store
@@ -65,17 +65,18 @@ services:
       dockerfile: ./LocalEnv/Dockerfile
     ports:
       - 8888:8888
-      - 7071:7071
+#      - 7091:7071
     volumes:
      - ./workspace:/workspace
     environment:
       - ASRS_EMULATOR_PORT=8888
-      - ASPNETCORE_URLS=http://+:8888;http://+:7071
+      - ASPNETCORE_URLS=http://+:8888
+      #;http://+:7071
       
 ############################
 # Global settings
 ############################
 volumes: 
-  vol_cosmos:
+#  vol_cosmos:
   workspace:
 

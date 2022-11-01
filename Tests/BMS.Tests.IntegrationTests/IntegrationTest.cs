@@ -9,12 +9,10 @@ namespace BMS.Tests.IntegrationTests
     {
         private readonly HttpClient _httpClient;
         private readonly ISignalRWrapper _signalR;
-        private readonly ITestOutputHelper _testOutputHelper;
 
         public IntegrationTest(IHttpClientFactory httpClientFactory, ISignalRWrapperFactory signalRWrapperFactory, ITestOutputHelper testOutputHelper)
         {
             _signalR = signalRWrapperFactory.Create(testOutputHelper);
-            _testOutputHelper = testOutputHelper;
             _httpClient = httpClientFactory.CreateClient("IntegrationTest");
         }
         private JsonSerializerOptions SerializeOptions => new JsonSerializerOptions
@@ -48,10 +46,10 @@ namespace BMS.Tests.IntegrationTests
             Assert.NotNull(response);
             Assert.Equal(200, (int)response.StatusCode);
 
-            var result = await _signalR.WaitForSignalREventAsync();
+            var result = await _signalR.WaitForSignalREventWithConditionAsync(20, messages =>
+                messages.Where(m => m.RequestId == customerRegistrationInfo.RequestId).Any());
+
             Assert.True(result);
-            Assert.NotEmpty(_signalR.Messages);
-            Assert.Contains(customerRegistrationInfo.RequestId, _signalR.Messages.Select(e => e.RequestId));
             var accountId = _signalR.Messages.Where(e => e.RequestId == customerRegistrationInfo.RequestId).Select(e => e.AccountId).FirstOrDefault();
             Assert.NotNull(accountId);
 
@@ -112,15 +110,12 @@ namespace BMS.Tests.IntegrationTests
             Assert.NotNull(response);
             Assert.Equal(200, (int)response.StatusCode);
 
-            var result = await _signalR.WaitForSignalREventAsync();
+            var result = await _signalR.WaitForSignalREventWithConditionAsync(20, messages =>
+                 messages.Where(m => m.RequestId == accountTransactionInfo.RequestId).Any());
             Assert.True(result);
-            Assert.NotEmpty(_signalR.Messages);
-            Assert.Contains(accountTransactionInfo.RequestId, _signalR.Messages.Select(e => e.RequestId));
 
             var endBalanceInfo = await GetAccountBalanceAsync(accountId);
-
             Assert.Equal(startBalanceInfo.Balance + 100, endBalanceInfo.Balance);
-
         }
 
         [Fact]
@@ -147,10 +142,10 @@ namespace BMS.Tests.IntegrationTests
             Assert.NotNull(response);
             Assert.Equal(200, (int)response.StatusCode);
 
-            var result = await _signalR.WaitForSignalREventAsync();
+            var result = await _signalR.WaitForSignalREventWithConditionAsync(20, messages =>
+               messages.Where(m => m.RequestId == accountTransactionInfo.RequestId).Any());
             Assert.True(result);
-            Assert.NotEmpty(_signalR.Messages);
-            Assert.Contains(accountTransactionInfo.RequestId, _signalR.Messages.Select(e => e.RequestId));
+
             Assert.True(_signalR.Messages.Where(e => e.RequestId == accountTransactionInfo.RequestId).First().IsSuccessful);
 
             var endBalanceInfo = await GetAccountBalanceAsync(accountId);
@@ -210,10 +205,9 @@ namespace BMS.Tests.IntegrationTests
                 Assert.NotNull(response);
                 Assert.Equal(200, (int)response.StatusCode);
 
-                var result = await _signalR.WaitForSignalREventAsync();
+                var result = await _signalR.WaitForSignalREventWithConditionAsync(20, messages =>
+                     messages.Where(m => m.RequestId == accountTransactionInfo.RequestId).Any());
                 Assert.True(result);
-                Assert.NotEmpty(_signalR.Messages);
-                Assert.Contains(accountTransactionInfo.RequestId, _signalR.Messages.Select(e => e.RequestId));
                 Assert.True(_signalR.Messages.Where(e => e.RequestId == accountTransactionInfo.RequestId).First().IsSuccessful);
             }
 
