@@ -16,7 +16,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Generic;
 using System.Globalization;
-using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 
