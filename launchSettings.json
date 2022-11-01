@@ -5,7 +5,6 @@
       "commandVersion": "1.0",
       "serviceActions": {
         "azurite": "StartWithoutDebugging",
-        "cosmosdb": "StartWithoutDebugging",
         "redis": "StartWithoutDebugging",
         "signalr": "StartWithoutDebugging"
       }
