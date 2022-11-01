@@ -54,8 +54,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{C983
 		infra\modules\identity.bicep = infra\modules\identity.bicep
 		infra\modules\functions-app-infra.bicep = infra\modules\functions-app-infra.bicep
 		infra\modules\keyvault.bicep = infra\modules\keyvault.bicep
-		infra\modules\servicebus.bicep = infra\modules\servicebus.bicep
 		infra\modules\signalr.bicep = infra\modules\signalr.bicep
+		infra\modules\storagequeue.bicep = infra\modules\storagequeue.bicep
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{6173D423-2F1B-4449-B270-112E17587821}"

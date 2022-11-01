@@ -55,14 +55,17 @@ module signalr 'modules/signalr.bicep' = {
 var signalRConnectionString = signalr.outputs.signalRConnectionString
 
 
-module servicebus 'modules/servicebus.bicep' = {
-  name: 'servicebusQueuesAndPubSubDeployment'
-  params: {
-    location: location
-    servicebusNamespaceName: servicebusNamespaceName
-  }
-}
-var serviceBusConnectionString = servicebus.outputs.serviceBusConnectionString
+//module storagequeue 'modules/storagequeue.bicep' = {
+//  name: 'storageQueuesDeployment'
+//  params: {
+//   storageAccountName: storageAccountName
+//  }
+//}
+
+//var accountTransactionQueueConnectionString = storagequeue.outputs.accountTransactionQueueConnectionString
+//var clientResponseQueueConnectionString = storagequeue.outputs.clientResponseQueueConnectionString
+//var customerRegistrationQueueConnectionString = storagequeue.outputs.customerRegistrationQueueConnectionString
+
 
 
 
@@ -78,7 +81,11 @@ module BMSCheckingAccountAccessorFunctionsApp 'modules/functions-app.bicep' = {
     additionalAppSettings: [
      {
        name: 'QueueConnectionString'
-       value:
+       value: storageAccountConnectionString
+     }
+     {
+       name: 'cosmosDBConnectionString'
+       value: cosmosDBConnectionString
      }
     ]
   }
@@ -97,6 +104,16 @@ module BMSUserInfoAccessorFunctionsApp 'modules/functions-app.bicep' = {
     hostingPlanId: hostingPlanId
     storageAccountConnectionString: storageAccountConnectionString
     location: location
+    additionalAppSettings: [
+     {
+       name: 'QueueConnectionString'
+       value: storageAccountConnectionString
+     }
+     {
+       name: 'cosmosDBConnectionString'
+       value: cosmosDBConnectionString
+     }
+    ]
   }
    dependsOn:  [
     functionsAppInfra
@@ -112,6 +129,16 @@ module BMSLiabilityValidatorEngineFunctionsApp 'modules/functions-app.bicep' = {
     hostingPlanId: hostingPlanId
     storageAccountConnectionString: storageAccountConnectionString
     location: location
+    additionalAppSettings: [
+     {
+       name: 'getBalanceUrl'
+       value: getBalanceUrl
+     }
+     {
+       name: 'getAccountInfoUrl'
+       value: getAccountInfoUrl
+     }
+    ]
   }
    dependsOn:  [
     functionsAppInfra
@@ -128,6 +155,36 @@ module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
     hostingPlanId: hostingPlanId
     storageAccountConnectionString: storageAccountConnectionString
     location: location
+    additionalAppSettings: [
+     {
+       name: 'QueueConnectionString'
+       value: storageAccountConnectionString
+     }
+     {
+       name: 'AzureSignalRConnectionString'
+       value: signalRConnectionString
+     }
+     {
+       name: 'userAccessorUrl'
+       value: userAccessorUrl
+     }
+     {
+       name: 'getBalanceUrl'
+       value: getBalanceUrl
+     }
+     {
+       name: 'getAccountTransactionHistoryUrl'
+       value: getAccountTransactionHistoryUrl
+     }
+     {
+       name: 'liabilityValidatorUrl'
+       value: liabilityValidatorUrl
+     }
+     {
+       name: 'RedisConnectionString'
+       value: redisConnectionString
+     }
+    ]
   }
    dependsOn:  [
     functionsAppInfra
