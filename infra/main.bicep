@@ -55,18 +55,16 @@ module signalr 'modules/signalr.bicep' = {
 var signalRConnectionString = signalr.outputs.signalRConnectionString
 
 
-//module storagequeue 'modules/storagequeue.bicep' = {
-//  name: 'storageQueuesDeployment'
-//  params: {
-//   storageAccountName: storageAccountName
-//  }
-//}
+module storagequeue 'modules/storagequeue.bicep' = {
+  name: 'storageQueuesDeployment'
+  params: {
+   storageAccountName: storageAccountName
+  }
+}
 
 //var accountTransactionQueueConnectionString = storagequeue.outputs.accountTransactionQueueConnectionString
 //var clientResponseQueueConnectionString = storagequeue.outputs.clientResponseQueueConnectionString
 //var customerRegistrationQueueConnectionString = storagequeue.outputs.customerRegistrationQueueConnectionString
-
-
 
 
 module BMSCheckingAccountAccessorFunctionsApp 'modules/functions-app.bicep' = {
@@ -94,6 +92,9 @@ module BMSCheckingAccountAccessorFunctionsApp 'modules/functions-app.bicep' = {
     ]
 }
 
+var getBalanceUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppUrl}/getBalanceUrl?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
+var getAccountTransactionHistoryUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppUrl}/GetAccountTransactionHistory?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
+var getAccountInfoUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppUrl}/GetAccountInfo?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
 
 module BMSUserInfoAccessorFunctionsApp 'modules/functions-app.bicep' = {
   name: BMSUserInfoAccessorServiceFunctionsAppName
@@ -120,6 +121,10 @@ module BMSUserInfoAccessorFunctionsApp 'modules/functions-app.bicep' = {
     ]
 }
 
+var getAccountIdByEmailUrl = '${BMSUserInfoAccessorFunctionsApp}.outputs.functionsAppUrl}/GetAccountIdByEmail?key=${BMSUserInfoAccessorFunctionsApp.outputs.functionsAppKey}'
+
+
+
 module BMSLiabilityValidatorEngineFunctionsApp 'modules/functions-app.bicep' = {
   name: BMSLiabilityValidatorEngineServiceFunctionsAppName
   params: {
@@ -145,6 +150,8 @@ module BMSLiabilityValidatorEngineFunctionsApp 'modules/functions-app.bicep' = {
     ]
 }
 
+var checkLiabilityUrl = '${BMSLiabilityValidatorEngineFunctionsApp.outputs.functionsAppUrl}/CheckLiabilityUrl?key=${BMSLiabilityValidatorEngineFunctionsApp.outputs.functionsAppKey}'
+
 
 module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
   name: BMSNotificationManagerServiceFunctionsAppName
@@ -166,7 +173,7 @@ module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
      }
      {
        name: 'userAccessorUrl'
-       value: userAccessorUrl
+       value: getAccountInfoUrl
      }
      {
        name: 'getBalanceUrl'
@@ -178,7 +185,7 @@ module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
      }
      {
        name: 'liabilityValidatorUrl'
-       value: liabilityValidatorUrl
+       value: checkLiabilityUrl
      }
      {
        name: 'RedisConnectionString'
@@ -190,6 +197,8 @@ module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
     functionsAppInfra
     ]
 }
+
+var negotiateUrl = '${BMSNotificationManagerFunctionsApp.outputs.functionsAppUrl}/Negotiate?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
 
 
 module BMSAccountManagerFunctionsApp 'modules/functions-app.bicep' = {
