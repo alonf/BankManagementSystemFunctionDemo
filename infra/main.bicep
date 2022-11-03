@@ -14,11 +14,11 @@ var workspaceName = '${branch}-bms-log-analytics'
 var appInsightsName = '${branch}-bms-app-insights'
 var storageAccountName = '${branch}bmsstorageaccount'
 var azureFunctionsHostingPlanName = '${branch}-bms-hostingplan'
-var BMSAccountManagerServiceFunctionsAppName = 'accountmanager' 
-var BMSNotificationManagerServiceFunctionsAppName = 'notificationmanager'
-var BMSUserInfoAccessorServiceFunctionsAppName = 'userinfoaccessor' 
-var BMSCheckingAccountAccessorServiceFunctionsAppName = 'checkingaccountaccessor'
-var BMSLiabilityValidatorEngineServiceFunctionsAppName = 'liabilityvalidatorengine' 
+var BMSAccountManagerServiceFunctionsAppName = '${branch}-bms-accountmanager' 
+var BMSNotificationManagerServiceFunctionsAppName = '${branch}-bms-notificationmanager'
+var BMSUserInfoAccessorServiceFunctionsAppName = '${branch}-bms-userinfoaccessor' 
+var BMSCheckingAccountAccessorServiceFunctionsAppName = '${branch}-bms-checkingaccountaccessor'
+var BMSLiabilityValidatorEngineServiceFunctionsAppName = '${branch}-bms-liabilityvalidatorengine' 
 
 
 //create the containers app required services
