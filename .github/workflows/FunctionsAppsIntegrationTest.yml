@@ -1,4 +1,4 @@
-name: Containers App Integration Tests
+name: Functions App Integration Tests
 
 on:
   workflow_dispatch:
