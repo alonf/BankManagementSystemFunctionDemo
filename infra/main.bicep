@@ -88,141 +88,141 @@ module BMSCheckingAccountAccessorFunctionsApp 'modules/functions-app.bicep' = {
     ]
 }
 
-var getBalanceUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppUrl}/getBalanceUrl?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
-var getAccountTransactionHistoryUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppUrl}/GetAccountTransactionHistory?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
-var getAccountInfoUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppUrl}/GetAccountInfo?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
+//var getBalanceUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppUrl}/getBalanceUrl?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
+//var getAccountTransactionHistoryUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppUrl}/GetAccountTransactionHistory?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
+//var getAccountInfoUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppUrl}/GetAccountInfo?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
 
-module BMSUserInfoAccessorFunctionsApp 'modules/functions-app.bicep' = {
-  name: BMSUserInfoAccessorServiceFunctionsAppName
-  params: {
-    functionsAppName: BMSUserInfoAccessorServiceFunctionsAppName
-    appInsightsInstrumentationKey: appInsightsInstrumentationKey
-    tags: tags
-    hostingPlanId: hostingPlanId
-    storageAccountConnectionString: storageAccountConnectionString
-    location: location
-    additionalAppSettings: [
-     {
-       name: 'QueueConnectionString'
-       value: storageAccountConnectionString
-     }
-     {
-       name: 'cosmosDBConnectionString'
-       value: cosmosDBConnectionString
-     }
-    ]
-  }
-   dependsOn:  [
-    functionsAppInfra
-    ]
-}
+//module BMSUserInfoAccessorFunctionsApp 'modules/functions-app.bicep' = {
+//  name: BMSUserInfoAccessorServiceFunctionsAppName
+//  params: {
+//    functionsAppName: BMSUserInfoAccessorServiceFunctionsAppName
+//    appInsightsInstrumentationKey: appInsightsInstrumentationKey
+//    tags: tags
+//    hostingPlanId: hostingPlanId
+//    storageAccountConnectionString: storageAccountConnectionString
+//    location: location
+//    additionalAppSettings: [
+//     {
+//       name: 'QueueConnectionString'
+//       value: storageAccountConnectionString
+//     }
+//     {
+//       name: 'cosmosDBConnectionString'
+//       value: cosmosDBConnectionString
+//     }
+//    ]
+//  }
+//   dependsOn:  [
+//    functionsAppInfra
+//    ]
+//}
 
-var getAccountIdByEmailUrl = '${BMSUserInfoAccessorFunctionsApp}.outputs.functionsAppUrl}/GetAccountIdByEmail?key=${BMSUserInfoAccessorFunctionsApp.outputs.functionsAppKey}'
-
-
-
-module BMSLiabilityValidatorEngineFunctionsApp 'modules/functions-app.bicep' = {
-  name: BMSLiabilityValidatorEngineServiceFunctionsAppName
-  params: {
-    functionsAppName: BMSLiabilityValidatorEngineServiceFunctionsAppName
-    appInsightsInstrumentationKey: appInsightsInstrumentationKey
-    tags: tags
-    hostingPlanId: hostingPlanId
-    storageAccountConnectionString: storageAccountConnectionString
-    location: location
-    additionalAppSettings: [
-     {
-       name: 'getBalanceUrl'
-       value: getBalanceUrl
-     }
-     {
-       name: 'getAccountInfoUrl'
-       value: getAccountInfoUrl
-     }
-    ]
-  }
-   dependsOn:  [
-    functionsAppInfra
-    BMSCheckingAccountAccessorFunctionsApp
-    BMSUserInfoAccessorFunctionsApp
-    ]
-}
-
-var checkLiabilityUrl = '${BMSLiabilityValidatorEngineFunctionsApp.outputs.functionsAppUrl}/CheckLiabilityUrl?key=${BMSLiabilityValidatorEngineFunctionsApp.outputs.functionsAppKey}'
+//var getAccountIdByEmailUrl = '${BMSUserInfoAccessorFunctionsApp}.outputs.functionsAppUrl}/GetAccountIdByEmail?key=${BMSUserInfoAccessorFunctionsApp.outputs.functionsAppKey}'
 
 
-module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
-  name: BMSNotificationManagerServiceFunctionsAppName
-  params: {
-    functionsAppName: BMSNotificationManagerServiceFunctionsAppName
-    appInsightsInstrumentationKey: appInsightsInstrumentationKey
-    tags: tags
-    hostingPlanId: hostingPlanId
-    storageAccountConnectionString: storageAccountConnectionString
-    location: location
-    additionalAppSettings: [
-     {
-       name: 'QueueConnectionString'
-       value: storageAccountConnectionString
-     }
-     {
-       name: 'AzureSignalRConnectionString'
-       value: signalRConnectionString
-     }
-    ]
-  }
-   dependsOn:  [
-    functionsAppInfra
-    signalr
-    ]
-}
+
+//module BMSLiabilityValidatorEngineFunctionsApp 'modules/functions-app.bicep' = {
+//  name: BMSLiabilityValidatorEngineServiceFunctionsAppName
+//  params: {
+//    functionsAppName: BMSLiabilityValidatorEngineServiceFunctionsAppName
+//    appInsightsInstrumentationKey: appInsightsInstrumentationKey
+//    tags: tags
+//    hostingPlanId: hostingPlanId
+//    storageAccountConnectionString: storageAccountConnectionString
+//    location: location
+//    additionalAppSettings: [
+//     {
+//       name: 'getBalanceUrl'
+//       value: getBalanceUrl
+//     }
+//     {
+//       name: 'getAccountInfoUrl'
+//       value: getAccountInfoUrl
+//     }
+//    ]
+//  }
+//   dependsOn:  [
+//    functionsAppInfra
+//    BMSCheckingAccountAccessorFunctionsApp
+//    BMSUserInfoAccessorFunctionsApp
+//    ]
+//}
+
+//var checkLiabilityUrl = '${BMSLiabilityValidatorEngineFunctionsApp.outputs.functionsAppUrl}/CheckLiabilityUrl?key=${BMSLiabilityValidatorEngineFunctionsApp.outputs.functionsAppKey}'
 
 
-module BMSAccountManagerFunctionsApp 'modules/functions-app.bicep' = {
-  name: BMSAccountManagerServiceFunctionsAppName
-  params: {
-    functionsAppName: BMSAccountManagerServiceFunctionsAppName
-    appInsightsInstrumentationKey: appInsightsInstrumentationKey
-    tags: tags
-    hostingPlanId: hostingPlanId
-    storageAccountConnectionString: storageAccountConnectionString
-    location: location
-    additionalAppSettings: [
-     {
-       name: 'QueueConnectionString'
-       value: storageAccountConnectionString
-     }
-     {
-       name: 'getBalanceUrl'
-       value: getBalanceUrl
-     }
-     {
-       name: 'getAccountTransactionHistoryUrl'
-       value: getAccountTransactionHistoryUrl
-     }
-     {
-       name: 'getAccountIdByEmailUrl'
-       value: getAccountIdByEmailUrl
-     }
-     {
-       name: 'checkLiabilityUrl'
-       value: checkLiabilityUrl
-     }
-     {
-         name: 'RedisConnectionString'
-         value: redisConnectionString
-     }
-   ]
-  }
-   dependsOn:  [
-    functionsAppInfra
-    redis
-    BMSLiabilityValidatorEngineFunctionsApp
-    ]
-}
+//module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
+//  name: BMSNotificationManagerServiceFunctionsAppName
+//  params: {
+//    functionsAppName: BMSNotificationManagerServiceFunctionsAppName
+//    appInsightsInstrumentationKey: appInsightsInstrumentationKey
+//    tags: tags
+//    hostingPlanId: hostingPlanId
+//    storageAccountConnectionString: storageAccountConnectionString
+//    location: location
+//    additionalAppSettings: [
+//     {
+//       name: 'QueueConnectionString'
+//       value: storageAccountConnectionString
+//     }
+//     {
+//       name: 'AzureSignalRConnectionString'
+//       value: signalRConnectionString
+//     }
+//    ]
+//  }
+//   dependsOn:  [
+//    functionsAppInfra
+//    signalr
+//    ]
+//}
 
 
-output accountManagerUrl string = '${BMSAccountManagerFunctionsApp.outputs.functionsAppUrl}?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
-output negotiateUrl string = '${BMSNotificationManagerFunctionsApp.outputs.functionsAppUrl}/Negotiate?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
+//module BMSAccountManagerFunctionsApp 'modules/functions-app.bicep' = {
+//  name: BMSAccountManagerServiceFunctionsAppName
+//  params: {
+//    functionsAppName: BMSAccountManagerServiceFunctionsAppName
+//    appInsightsInstrumentationKey: appInsightsInstrumentationKey
+//    tags: tags
+//    hostingPlanId: hostingPlanId
+//    storageAccountConnectionString: storageAccountConnectionString
+//    location: location
+//    additionalAppSettings: [
+//     {
+//       name: 'QueueConnectionString'
+//       value: storageAccountConnectionString
+//     }
+//     {
+//       name: 'getBalanceUrl'
+//       value: getBalanceUrl
+//     }
+//     {
+//       name: 'getAccountTransactionHistoryUrl'
+//       value: getAccountTransactionHistoryUrl
+//     }
+//     {
+//       name: 'getAccountIdByEmailUrl'
+//       value: getAccountIdByEmailUrl
+//     }
+//     {
+//       name: 'checkLiabilityUrl'
+//       value: checkLiabilityUrl
+//     }
+//     {
+//         name: 'RedisConnectionString'
+//         value: redisConnectionString
+//     }
+//   ]
+//  }
+//   dependsOn:  [
+//    functionsAppInfra
+//    redis
+//    BMSLiabilityValidatorEngineFunctionsApp
+//    ]
+//}
+
+
+//output accountManagerUrl string = '${BMSAccountManagerFunctionsApp.outputs.functionsAppUrl}?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
+//output negotiateUrl string = '${BMSNotificationManagerFunctionsApp.outputs.functionsAppUrl}/Negotiate?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
 
       
