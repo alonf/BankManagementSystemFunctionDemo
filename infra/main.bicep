@@ -12,7 +12,7 @@ var redisName = '${branch}-bms-redis'
 
 var workspaceName = '${branch}-bms-log-analytics'
 var appInsightsName = '${branch}-bms-app-insights'
-var storageAccountName = '${branch}-bms-storageaccount'
+var storageAccountName = '${branch}bmsstorageaccount'
 var azureFunctionsHostingPlanName = '${branch}-bms-hostingplan'
 var BMSAccountManagerServiceFunctionsAppName = 'accountmanager' 
 var BMSNotificationManagerServiceFunctionsAppName = 'notificationmanager'
