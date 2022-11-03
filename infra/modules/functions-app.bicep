@@ -21,6 +21,8 @@ resource functionsApp 'Microsoft.Web/sites@2022-03-01' = {
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
       netFrameworkVersion: 'v6.0'
+      use32BitWorkerProcess: false
+      
       appSettings: union([
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -48,7 +50,7 @@ resource functionsApp 'Microsoft.Web/sites@2022-03-01' = {
 }
   
 //output the function app url
-output functionsAppUrl string = functionsApp.properties.defaultHostName
+//output functionsAppUrl string = functionsApp.properties.defaultHostName
 
 //output the function key
-output functionsAppKey string = listKeys(resourceId('Microsoft.Web/sites', functionsAppName), '2022-03-01').functionKeys.default
+//output functionsAppKey string = listKeys(resourceId('Microsoft.Web/sites', functionsAppName), '2022-03-01').functionKeys.default
