@@ -1,0 +1,54 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    branches:
+      - master
+    paths-ignore:
+    - '.github/**'
+    - 'infra/**'
+   
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - master
+    paths-ignore:
+    - '.github/**'
+    - 'infra/**'
+    
+env:
+  CosmosDbConnectionString: ${{ secrets.BMSD_COSMOSDB_CONNECTION_STRING }}
+  SignalRConnectionString: ${{ secrets.BMSD_SIGNALR_CONNECTION_STRING }}
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    environment: test
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: |
+          6.0.x
+    - name: Docker Compose Up
+      run: docker compose -f docker-compose.yml -f docker-compose-github-test.yml up -d
+    - name: Restore dependencies
+      run: dotnet restore BMSD.sln
+    - name: Build
+      run: dotnet build --no-restore BMSD.sln
+    - name: Docker ps
+      run: docker ps
+    - name: Test
+      run: dotnet test --no-build --verbosity normal --configuration Debug Tests/BMSD.Tests.IntegrationTests/BMSD.Tests.IntegrationTests.csproj
+    - name: Dump docker logs on failure
+      if: failure()
+      uses: jwalton/gh-docker-logs@v1
+    - name: Stop containers
+      if: always()
+      run: docker compose down
