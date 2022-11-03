@@ -1,4 +1,4 @@
-name: Deploy Azure Container Apps Environment
+name: Deploy Azure Functions Apps
 
 on:
   workflow_dispatch:
@@ -26,9 +26,6 @@ jobs:
           #az ad sp create-for-rbac --name "bms" --role contributor --scopes /subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/bms-cont-app-rg --sdk-auth
           az deployment group create --resource-group bms-cont-app-rg --template-file infra/main.bicep \
             --parameters branchName='master' \
-            cosmosDBConnectionString="${{secrets.BMSD_COSMOSDB_CONNECTION_STRING}}" \
-            cosmosDbUrl=${{secrets.COSMOSDB_URL}} \
-            cosmosDBKey="${{secrets.COSMOSDB_KEY}}" \
-            cosmosDBDatabaseName=BMSDB 
+            cosmosDBConnectionString="${{secrets.BMSD_COSMOSDB_CONNECTION_STRING}}" 
             
          
