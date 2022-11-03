@@ -50,10 +50,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{C9833D90-B0B8-4545-A43C-57053B6A2024}"
 	ProjectSection(SolutionItems) = preProject
 		infra\modules\comosdb.bicep = infra\modules\comosdb.bicep
-		infra\modules\functions-app.bicep = infra\modules\functions-app.bicep
-		infra\modules\identity.bicep = infra\modules\identity.bicep
 		infra\modules\functions-app-infra.bicep = infra\modules\functions-app-infra.bicep
-		infra\modules\keyvault.bicep = infra\modules\keyvault.bicep
+		infra\modules\functions-app.bicep = infra\modules\functions-app.bicep
+		infra\modules\redis.bicep = infra\modules\redis.bicep
 		infra\modules\signalr.bicep = infra\modules\signalr.bicep
 		infra\modules\storagequeue.bicep = infra\modules\storagequeue.bicep
 	EndProjectSection

@@ -1,20 +1,14 @@
 param branchName string
-param cosmosDbUrl string
-param cosmosDBDatabaseName string
 param location string = resourceGroup().location
 
 @secure()
 param cosmosDBConnectionString string
 
-@secure()
-param cosmosDBKey string
-
 param tags object = {}
-
 var branch = toLower(last(split(branchName, '/')))
 
 var signalRName = '${branch}-bms-signalr'
-var servicebusNamespaceName = '${branch}-bms-servicebus'
+var redisName = '${branch}-bms-redis'
 
 var workspaceName = '${branch}-bms-log-analytics'
 var appInsightsName = '${branch}-bms-app-insights'
@@ -44,7 +38,6 @@ var appInsightsInstrumentationKey = functionsAppInfra.outputs.appInsightsInstrum
 var storageAccountConnectionString = functionsAppInfra.outputs.storageAccountConnectionString
 
 
-
 module signalr 'modules/signalr.bicep' = {
   name: 'signalrDeployment'
   params: {
@@ -54,6 +47,14 @@ module signalr 'modules/signalr.bicep' = {
 }
 var signalRConnectionString = signalr.outputs.signalRConnectionString
 
+module redis 'modules/redis.bicep' = {
+  name: 'redisDeployment'
+  params: {
+    redisCacheName: redisName
+    location: location
+  }
+}
+var redisConnectionString = redis.outputs.redisConnectionString
 
 module storagequeue 'modules/storagequeue.bicep' = {
   name: 'storageQueuesDeployment'
@@ -61,11 +62,6 @@ module storagequeue 'modules/storagequeue.bicep' = {
    storageAccountName: storageAccountName
   }
 }
-
-//var accountTransactionQueueConnectionString = storagequeue.outputs.accountTransactionQueueConnectionString
-//var clientResponseQueueConnectionString = storagequeue.outputs.clientResponseQueueConnectionString
-//var customerRegistrationQueueConnectionString = storagequeue.outputs.customerRegistrationQueueConnectionString
-
 
 module BMSCheckingAccountAccessorFunctionsApp 'modules/functions-app.bicep' = {
   name: BMSCheckingAccountAccessorServiceFunctionsAppName
@@ -147,6 +143,8 @@ module BMSLiabilityValidatorEngineFunctionsApp 'modules/functions-app.bicep' = {
   }
    dependsOn:  [
     functionsAppInfra
+    BMSCheckingAccountAccessorFunctionsApp
+    BMSUserInfoAccessorFunctionsApp
     ]
 }
 
@@ -171,34 +169,13 @@ module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
        name: 'AzureSignalRConnectionString'
        value: signalRConnectionString
      }
-     {
-       name: 'userAccessorUrl'
-       value: getAccountInfoUrl
-     }
-     {
-       name: 'getBalanceUrl'
-       value: getBalanceUrl
-     }
-     {
-       name: 'getAccountTransactionHistoryUrl'
-       value: getAccountTransactionHistoryUrl
-     }
-     {
-       name: 'liabilityValidatorUrl'
-       value: checkLiabilityUrl
-     }
-     {
-       name: 'RedisConnectionString'
-       value: redisConnectionString
-     }
     ]
   }
    dependsOn:  [
     functionsAppInfra
+    signalr
     ]
 }
-
-var negotiateUrl = '${BMSNotificationManagerFunctionsApp.outputs.functionsAppUrl}/Negotiate?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
 
 
 module BMSAccountManagerFunctionsApp 'modules/functions-app.bicep' = {
@@ -210,12 +187,42 @@ module BMSAccountManagerFunctionsApp 'modules/functions-app.bicep' = {
     hostingPlanId: hostingPlanId
     storageAccountConnectionString: storageAccountConnectionString
     location: location
+    additionalAppSettings: [
+     {
+       name: 'QueueConnectionString'
+       value: storageAccountConnectionString
+     }
+     {
+       name: 'getBalanceUrl'
+       value: getBalanceUrl
+     }
+     {
+       name: 'getAccountTransactionHistoryUrl'
+       value: getAccountTransactionHistoryUrl
+     }
+     {
+       name: 'getAccountIdByEmailUrl'
+       value: getAccountIdByEmailUrl
+     }
+     {
+       name: 'checkLiabilityUrl'
+       value: checkLiabilityUrl
+     }
+     {
+         name: 'RedisConnectionString'
+         value: redisConnectionString
+     }
+   ]
   }
    dependsOn:  [
     functionsAppInfra
+    redis
+    BMSLiabilityValidatorEngineFunctionsApp
     ]
 }
 
 
-output webServiceUrl string = BMSAccountManagerFunctionsApp.outputs.functionsAppUrl
+output accountManagerUrl string = '${BMSAccountManagerFunctionsApp.outputs.functionsAppUrl}?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
+output negotiateUrl string = '${BMSNotificationManagerFunctionsApp.outputs.functionsAppUrl}/Negotiate?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
+
       
