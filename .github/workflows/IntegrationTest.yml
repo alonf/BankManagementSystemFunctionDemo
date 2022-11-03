@@ -19,8 +19,8 @@ on:
     - 'infra/**'
     
 env:
-  CosmosDbConnectionString: ${{ secrets.BMSD_COSMOSDB_CONNECTION_STRING }}
-  SignalRConnectionString: ${{ secrets.BMSD_SIGNALR_CONNECTION_STRING }}
+  CosmosDbConnectionString: ${{ secrets.BMS_COSMOSDB_CONNECTION_STRING }}
+  SignalRConnectionString: ${{ secrets.BMS_SIGNALR_CONNECTION_STRING }}
 jobs:
   build:
     runs-on: ubuntu-22.04

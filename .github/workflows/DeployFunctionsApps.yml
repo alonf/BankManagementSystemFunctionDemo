@@ -26,6 +26,6 @@ jobs:
           #az ad sp create-for-rbac --name "bms" --role contributor --scopes /subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/bms-cont-app-rg --sdk-auth
           az deployment group create --resource-group bms-cont-app-rg --template-file infra/main.bicep \
             --parameters branchName='master' \
-            cosmosDBConnectionString="${{secrets.BMSD_COSMOSDB_CONNECTION_STRING}}" 
+            cosmosDBConnectionString="${{secrets.BMS_COSMOSDB_CONNECTION_STRING}}" 
             
          
