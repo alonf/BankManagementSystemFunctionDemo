@@ -14,16 +14,16 @@ var workspaceName = '${branch}-bms-log-analytics'
 var appInsightsName = '${branch}-bms-app-insights'
 var storageAccountName = '${branch}bmsstorageaccount'
 var azureFunctionsHostingPlanName = '${branch}-bms-hostingplan'
-var BMSAccountManagerServiceFunctionsAppName = '${branch}-bms-accountmanager' 
-var BMSNotificationManagerServiceFunctionsAppName = '${branch}-bms-notificationmanager'
-var BMSUserInfoAccessorServiceFunctionsAppName = '${branch}-bms-userinfoaccessor' 
-var BMSCheckingAccountAccessorServiceFunctionsAppName = '${branch}-bms-checkingaccountaccessor'
-var BMSLiabilityValidatorEngineServiceFunctionsAppName = '${branch}-bms-liabilityvalidatorengine' 
+var BMSAccountManagerServiceFunctionAppName = '${branch}-bms-accountmanager' 
+var BMSNotificationManagerServiceFunctionAppName = '${branch}-bms-notificationmanager'
+var BMSUserInfoAccessorServiceFunctionAppName = '${branch}-bms-userinfoaccessor' 
+var BMSCheckingAccountAccessorServiceFunctionAppName = '${branch}-bms-checkingaccountaccessor'
+var BMSLiabilityValidatorEngineServiceFunctionAppName = '${branch}-bms-liabilityvalidatorengine' 
 
 
 //create the containers app required services
-module functionsAppInfra 'modules/functions-app-infra.bicep' = {
-  name: 'functionsAppInfraDeployment'
+module functionAppInfra 'modules/functions-app-infra.bicep' = {
+  name: 'functionAppInfraDeployment'
   params: {
     location: location
     appInsightsName: appInsightsName
@@ -33,9 +33,9 @@ module functionsAppInfra 'modules/functions-app-infra.bicep' = {
     tags: tags
   }
 }
-var hostingPlanId = functionsAppInfra.outputs.hostingPlanId
-var appInsightsInstrumentationKey = functionsAppInfra.outputs.appInsightsInstrumentationKey
-var storageAccountConnectionString = functionsAppInfra.outputs.storageAccountConnectionString
+var hostingPlanId = functionAppInfra.outputs.hostingPlanId
+var appInsightsInstrumentationKey = functionAppInfra.outputs.appInsightsInstrumentationKey
+var storageAccountConnectionString = functionAppInfra.outputs.storageAccountConnectionString
 
 
 module signalr 'modules/signalr.bicep' = {
@@ -63,10 +63,10 @@ var redisConnectionString = redis.outputs.redisConnectionString
 //  }
 //}
 
-module BMSCheckingAccountAccessorFunctionsApp 'modules/functions-app.bicep' = {
-  name: BMSCheckingAccountAccessorServiceFunctionsAppName
+module BMSCheckingAccountAccessorFunctionApp 'modules/functions-app.bicep' = {
+  name: BMSCheckingAccountAccessorServiceFunctionAppName
   params: {
-    functionsAppName: BMSCheckingAccountAccessorServiceFunctionsAppName
+    functionAppName: BMSCheckingAccountAccessorServiceFunctionAppName
     appInsightsInstrumentationKey: appInsightsInstrumentationKey
     tags: tags
     hostingPlanId: hostingPlanId
@@ -84,18 +84,18 @@ module BMSCheckingAccountAccessorFunctionsApp 'modules/functions-app.bicep' = {
     ]
   }
    dependsOn:  [
-    functionsAppInfra
+    functionAppInfra
     ]
 }
 
-var getBalanceUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionBaseUrl}/getBalanceUrl?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
-var getAccountTransactionHistoryUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionBaseUrl}/GetAccountTransactionHistory?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
-var getAccountInfoUrl = '${BMSCheckingAccountAccessorFunctionsApp.outputs.functionBaseUrl}/GetAccountInfo?key=${BMSCheckingAccountAccessorFunctionsApp.outputs.functionsAppKey}'
+var getBalanceUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/getBalanceUrl?key=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
+var getAccountTransactionHistoryUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/GetAccountTransactionHistory?key=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
+var getAccountInfoUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/GetAccountInfo?key=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
 
-module BMSUserInfoAccessorFunctionsApp 'modules/functions-app.bicep' = {
-  name: BMSUserInfoAccessorServiceFunctionsAppName
+module BMSUserInfoAccessorFunctionApp 'modules/functions-app.bicep' = {
+  name: BMSUserInfoAccessorServiceFunctionAppName
   params: {
-    functionsAppName: BMSUserInfoAccessorServiceFunctionsAppName
+    functionAppName: BMSUserInfoAccessorServiceFunctionAppName
     appInsightsInstrumentationKey: appInsightsInstrumentationKey
     tags: tags
     hostingPlanId: hostingPlanId
@@ -113,18 +113,18 @@ module BMSUserInfoAccessorFunctionsApp 'modules/functions-app.bicep' = {
     ]
   }
    dependsOn:  [
-    functionsAppInfra
+    functionAppInfra
     ]
 }
 
-var getAccountIdByEmailUrl = '${BMSUserInfoAccessorFunctionsApp}.outputs.functionBaseUrl}/GetAccountIdByEmail?key=${BMSUserInfoAccessorFunctionsApp.outputs.functionsAppKey}'
+var getAccountIdByEmailUrl = '${BMSUserInfoAccessorFunctionApp}.outputs.functionBaseUrl}/GetAccountIdByEmail?key=${BMSUserInfoAccessorFunctionApp.outputs.functionAppKey}'
 
 
 
-module BMSLiabilityValidatorEngineFunctionsApp 'modules/functions-app.bicep' = {
-  name: BMSLiabilityValidatorEngineServiceFunctionsAppName
+module BMSLiabilityValidatorEngineFunctionApp 'modules/functions-app.bicep' = {
+  name: BMSLiabilityValidatorEngineServiceFunctionAppName
   params: {
-    functionsAppName: BMSLiabilityValidatorEngineServiceFunctionsAppName
+    functionAppName: BMSLiabilityValidatorEngineServiceFunctionAppName
     appInsightsInstrumentationKey: appInsightsInstrumentationKey
     tags: tags
     hostingPlanId: hostingPlanId
@@ -142,19 +142,19 @@ module BMSLiabilityValidatorEngineFunctionsApp 'modules/functions-app.bicep' = {
     ]
   }
    dependsOn:  [
-    functionsAppInfra
-    BMSCheckingAccountAccessorFunctionsApp
-    BMSUserInfoAccessorFunctionsApp
+    functionAppInfra
+    BMSCheckingAccountAccessorFunctionApp
+    BMSUserInfoAccessorFunctionApp
     ]
 }
 
-var checkLiabilityUrl = '${BMSLiabilityValidatorEngineFunctionsApp.outputs.functionBaseUrl}/CheckLiabilityUrl?key=${BMSLiabilityValidatorEngineFunctionsApp.outputs.functionsAppKey}'
+var checkLiabilityUrl = '${BMSLiabilityValidatorEngineFunctionApp.outputs.functionBaseUrl}/CheckLiabilityUrl?key=${BMSLiabilityValidatorEngineFunctionApp.outputs.functionAppKey}'
 
 
-module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
-  name: BMSNotificationManagerServiceFunctionsAppName
+module BMSNotificationManagerFunctionApp 'modules/functions-app.bicep' = {
+  name: BMSNotificationManagerServiceFunctionAppName
   params: {
-    functionsAppName: BMSNotificationManagerServiceFunctionsAppName
+    functionAppName: BMSNotificationManagerServiceFunctionAppName
     appInsightsInstrumentationKey: appInsightsInstrumentationKey
     tags: tags
     hostingPlanId: hostingPlanId
@@ -172,16 +172,16 @@ module BMSNotificationManagerFunctionsApp 'modules/functions-app.bicep' = {
     ]
   }
    dependsOn:  [
-    functionsAppInfra
+    functionAppInfra
     signalr
     ]
 }
 
 
-module BMSAccountManagerFunctionsApp 'modules/functions-app.bicep' = {
-  name: BMSAccountManagerServiceFunctionsAppName
+module BMSAccountManagerFunctionApp 'modules/functions-app.bicep' = {
+  name: BMSAccountManagerServiceFunctionAppName
   params: {
-    functionsAppName: BMSAccountManagerServiceFunctionsAppName
+    functionAppName: BMSAccountManagerServiceFunctionAppName
     appInsightsInstrumentationKey: appInsightsInstrumentationKey
     tags: tags
     hostingPlanId: hostingPlanId
@@ -215,14 +215,14 @@ module BMSAccountManagerFunctionsApp 'modules/functions-app.bicep' = {
    ]
   }
    dependsOn:  [
-    functionsAppInfra
+    functionAppInfra
     redis
-    BMSLiabilityValidatorEngineFunctionsApp
+    BMSLiabilityValidatorEngineFunctionApp
     ]
 }
 
 
-output accountManagerUrl string = '${BMSAccountManagerFunctionsApp.outputs.functionBaseUrl}?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
-output negotiateUrl string = '${BMSNotificationManagerFunctionsApp.outputs.functionBaseUrl}/Negotiate?key=${BMSNotificationManagerFunctionsApp.outputs.functionsAppKey}'
+output accountManagerUrl string = '${BMSAccountManagerFunctionApp.outputs.functionBaseUrl}?key=${BMSNotificationManagerFunctionApp.outputs.functionAppKey}'
+output negotiateUrl string = '${BMSNotificationManagerFunctionApp.outputs.functionBaseUrl}/Negotiate?key=${BMSNotificationManagerFunctionApp.outputs.functionAppKey}'
 
       

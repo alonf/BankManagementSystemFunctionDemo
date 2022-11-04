@@ -1,4 +1,4 @@
-param functionsAppName string
+param functionAppName string
 param location string
 param tags object
 param appInsightsInstrumentationKey string
@@ -7,8 +7,8 @@ param hostingPlanId string
 param additionalAppSettings array = []
 
 
-resource functionsApp 'Microsoft.Web/sites@2022-03-01' = {
-  name: functionsAppName
+resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
+  name: functionAppName
   location: location
   kind: 'functionapp'
   tags: tags
@@ -50,7 +50,8 @@ resource functionsApp 'Microsoft.Web/sites@2022-03-01' = {
 }
   
 //output the function base url
-output functionBaseUrl string = 'https://${functionsApp.properties.defaultHostName}/api'
+output functionBaseUrl string = 'https://${functionApp.properties.defaultHostName}/api'
 
 //output the function key
-output functionsAppKey string = listKeys(resourceId('Microsoft.Web/sites', functionsAppName), '2022-03-01').functionKeys.default
+output functionAppKey string = listKeys('${functionApp.id}/host/default', functionApp.apiVersion).functionKeys.default
+                                
