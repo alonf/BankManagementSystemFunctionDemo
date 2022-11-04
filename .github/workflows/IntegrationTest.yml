@@ -47,7 +47,8 @@ jobs:
       run: docker ps
     - name: Run all functions for the test
       run: |
-        choco install azure-functions-core-tools
+        wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+        sudo dpkg -i packages-microsoft-prod.deb
         cd Accessors/BMS.Accessors.CheckingAccount
         func start &
         cd ../../Accessors/BMS.Accessors.UserInfo
