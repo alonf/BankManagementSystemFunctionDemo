@@ -47,25 +47,23 @@ jobs:
       run: docker compose -f docker-compose.yml up -d
     - name: Restore dependencies
       run: dotnet restore BMS.sln
-    - name: Build
-      run: dotnet build --no-restore BMS.sln
     - name: Docker ps
       run: docker ps
     - name: Run all functions and test
       run: |
         cd Accessors/BMS.Accessors.CheckingAccount
-        func host start --port 7042 --no-build &
+        func start --port 7042 &
         cd ../../Accessors/BMS.Accessors.UserInfo
-        func host start --port 7274 --no-build &
+        func start --port 7274 &
         cd ../../Engines/LiabilityValidator
-        func host start --port 7248 --no-build &
+        func start --port 7248 &
         cd ../../Managers/BMS.Managers.Notification
-        func host start --port 7043 --no-build &
+        func start --port 7043 &
         cd ../../Managers/BMS.Managers.Account
-        func host start --port 7071 --no-build &
+        func start --port 7071 &
         cd ../..
         sleep 30
-        dotnet test --no-build --verbosity normal --configuration Debug Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
+        dotnet test --verbosity normal --configuration Debug Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
     - name: Dump docker logs on failure
       if: failure()
       uses: jwalton/gh-docker-logs@v1
