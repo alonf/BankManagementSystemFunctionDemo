@@ -27,7 +27,6 @@ jobs:
     env:
       CosmosDbConnectionString: ${{secrets.BMS_COSMOSDB_CONNECTION_STRING}}
       AzureSignalRConnectionString: ${{secrets.BMS_SIGNALR_CONNECTION_STRING}}
-      SignalRConnectionString: ${{secrets.BMS_SIGNALR_CONNECTION_STRING}}
     defaults:
       run:
         shell: bash
