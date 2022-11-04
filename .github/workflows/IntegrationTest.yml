@@ -39,10 +39,6 @@ jobs:
           6.0.x
     - name: Install function tools
       run: |
-        echo '**************************************************************************'
-        echo $SignalRConnectionString > file.txt
-        more file.txt
-        echo '**************************************************************************'
         wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
         sudo dpkg -i packages-microsoft-prod.deb
         sudo apt-get update
@@ -66,7 +62,7 @@ jobs:
         cd ../../Managers/BMS.Managers.Account
         func start --port 7071 &
         cd ../..
-        sleep 30
+        sleep 60
         dotnet test --verbosity normal --configuration Debug Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
     - name: Dump docker logs on failure
       if: failure()
