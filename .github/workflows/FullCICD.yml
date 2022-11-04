@@ -7,19 +7,19 @@ jobs:
   call-ci-workflow:
     uses: ./.github/workflows/IntegrationTest.yml
     secrets: inherit
-  call-deployfunctions-apps-workflow:
+  call-deploy-function-app-workflow:
     needs: call-ci-workflow
-    uses: ./.github/workflows/DeployFunctionsApps.yml
+    uses: ./.github/workflows/DeployFunctionsApp.yml
     secrets: inherit
   delay:
     runs-on: ubuntu-latest
-    needs: call-deployfunctions-apps-workflow
+    needs: call-deploy-function-app-workflow
     steps:
-    - name: Sleep for 60 seconds to let the Functions Apps finished deployment and start
+    - name: Sleep for 60 seconds to let the Function App finished deployment and start
       run: sleep 60
       shell: bash
-  call-test-deployed-functions-apps-workflow:
+  call-test-deployed-function-app-workflow:
     needs: delay
-    uses: ./.github/workflows/FunctionsAppsIntegrationTest.yml
+    uses: ./.github/workflows/FunctionAppIntegrationTest.yml
     secrets: inherit
     
