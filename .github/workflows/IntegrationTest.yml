@@ -54,15 +54,15 @@ jobs:
     - name: Run all functions and test
       run: |
         cd Accessors/BMS.Accessors.CheckingAccount
-        func host start --no-build &
+        func host start --port 7042 --no-build &
         cd ../../Accessors/BMS.Accessors.UserInfo
-        func host start --no-build &
+        func host start --port 7274 --no-build &
         cd ../../Engines/LiabilityValidator
-        func host start --no-build &
+        func host start --port 7248 --no-build &
         cd ../../Managers/BMS.Managers.Notification
-        func host start --no-build &
+        func host start --port 7043 --no-build &
         cd ../../Managers/BMS.Managers.Account
-        func host start --no-build &
+        func host start --port 7071 --no-build &
         cd ../..
         sleep 30
         dotnet test --no-build --verbosity normal --configuration Debug Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
