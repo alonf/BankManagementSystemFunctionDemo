@@ -9,7 +9,7 @@ namespace BMS.Tests.IntegrationTests
     {
         private readonly HttpClient _httpClient;
         private readonly ISignalRWrapper _signalR;
-
+        private readonly int _signalRWaitingTimoutInSeconds = 40;
         public IntegrationTest(IHttpClientFactory httpClientFactory, ISignalRWrapperFactory signalRWrapperFactory, ITestOutputHelper testOutputHelper)
         {
             _signalR = signalRWrapperFactory.Create(testOutputHelper);
@@ -46,7 +46,7 @@ namespace BMS.Tests.IntegrationTests
             Assert.NotNull(response);
             Assert.Equal(200, (int)response.StatusCode);
 
-            var result = await _signalR.WaitForSignalREventWithConditionAsync(20, messages =>
+            var result = await _signalR.WaitForSignalREventWithConditionAsync(_signalRWaitingTimoutInSeconds, messages =>
                 messages.Where(m => m.RequestId == customerRegistrationInfo.RequestId).Any());
 
             Assert.True(result);
@@ -110,7 +110,7 @@ namespace BMS.Tests.IntegrationTests
             Assert.NotNull(response);
             Assert.Equal(200, (int)response.StatusCode);
 
-            var result = await _signalR.WaitForSignalREventWithConditionAsync(20, messages =>
+            var result = await _signalR.WaitForSignalREventWithConditionAsync(_signalRWaitingTimoutInSeconds, messages =>
                  messages.Where(m => m.RequestId == accountTransactionInfo.RequestId).Any());
             Assert.True(result);
 
@@ -142,7 +142,7 @@ namespace BMS.Tests.IntegrationTests
             Assert.NotNull(response);
             Assert.Equal(200, (int)response.StatusCode);
 
-            var result = await _signalR.WaitForSignalREventWithConditionAsync(20, messages =>
+            var result = await _signalR.WaitForSignalREventWithConditionAsync(_signalRWaitingTimoutInSeconds, messages =>
                messages.Where(m => m.RequestId == accountTransactionInfo.RequestId).Any());
             Assert.True(result);
 
@@ -205,7 +205,7 @@ namespace BMS.Tests.IntegrationTests
                 Assert.NotNull(response);
                 Assert.Equal(200, (int)response.StatusCode);
 
-                var result = await _signalR.WaitForSignalREventWithConditionAsync(20, messages =>
+                var result = await _signalR.WaitForSignalREventWithConditionAsync(_signalRWaitingTimoutInSeconds, messages =>
                      messages.Where(m => m.RequestId == accountTransactionInfo.RequestId).Any());
                 Assert.True(result);
                 Assert.True(_signalR.Messages.Where(e => e.RequestId == accountTransactionInfo.RequestId).First().IsSuccessful);
