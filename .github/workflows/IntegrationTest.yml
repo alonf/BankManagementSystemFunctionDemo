@@ -1,4 +1,4 @@
-name: Integration Tests
+name: Build anf integration tests
 
 on:
   workflow_dispatch:
@@ -21,9 +21,10 @@ on:
 env:
   CosmosDbConnectionString: ${{ secrets.BMS_COSMOSDB_CONNECTION_STRING }}
   SignalRConnectionString: ${{ secrets.BMS_SIGNALR_CONNECTION_STRING }}
+ 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     environment: test
     defaults:
       run:
@@ -37,15 +38,15 @@ jobs:
         dotnet-version: |
           6.0.x
     - name: Docker Compose Up
-      run: docker compose -f docker-compose.yml -f docker-compose-github-test.yml up -d
+      run: docker compose -f docker-compose.yml up -d
     - name: Restore dependencies
-      run: dotnet restore BMSD.sln
+      run: dotnet restore BMS.sln
     - name: Build
-      run: dotnet build --no-restore BMSD.sln
+      run: dotnet build --no-restore BMS.sln
     - name: Docker ps
       run: docker ps
     - name: Test
-      run: dotnet test --no-build --verbosity normal --configuration Debug Tests/BMSD.Tests.IntegrationTests/BMSD.Tests.IntegrationTests.csproj
+      run: dotnet test --no-build --verbosity normal --configuration Debug Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
     - name: Dump docker logs on failure
       if: failure()
       uses: jwalton/gh-docker-logs@v1
