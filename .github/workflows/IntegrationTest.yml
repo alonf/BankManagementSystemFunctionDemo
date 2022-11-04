@@ -62,7 +62,7 @@ jobs:
         cd ../../Managers/BMS.Managers.Account
         func start &
         cd ../..
-        sleep 20
+        sleep 60
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Debug Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
     - name: Dump docker logs on failure
