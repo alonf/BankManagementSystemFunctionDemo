@@ -47,6 +47,7 @@ jobs:
       run: docker ps
     - name: Run all functions for the test
       run: |
+        npm i -g azure-functions-core-tools@4 --unsafe-perm true
         cd Accessors/BMS.Accessors.CheckingAccount
         func start &
         cd ../../Accessors/BMS.Accessors.UserInfo
