@@ -1,9 +1,0 @@
-{
-    "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-    "getBalanceUrl": "http://localhost:7042/api/GetBalance",
-    "getAccountInfoUrl": "http://localhost:7042/api/GetAccountInfo"
-  }
-}

@@ -56,7 +56,7 @@ jobs:
         func start --port 7042 &
         cd ../../Accessors/BMS.Accessors.UserInfo
         func start --port 7274 &
-        cd ../../Engines/LiabilityValidator
+        cd ../../Engines/BMS.Engines.LiabilityValidator
         func start --port 7248 &
         cd ../../Managers/BMS.Managers.Notification
         func start --port 7043 &

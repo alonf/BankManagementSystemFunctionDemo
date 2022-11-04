@@ -27,8 +27,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Accessors.CheckingAccou
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Accessors.UserInfo", "Accessors\BMS.Accessors.UserInfo\BMS.Accessors.UserInfo.csproj", "{3C871056-370F-4349-BFC9-B5F230468B63}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Engines.LiabilityValidator", "Engines\LiabilityValidator\BMS.Engines.LiabilityValidator.csproj", "{3B3AC8DB-B0DD-40FA-916B-A4C1CB1CD91E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Tests.IntegrationTests", "Tests\BMS.Tests.IntegrationTests\BMS.Tests.IntegrationTests.csproj", "{A583C881-CE7B-45FB-BEFE-0D1843A0C9B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Managers.Notification", "Managers\BMS.Managers.Notification\BMS.Managers.Notification.csproj", "{087A5628-86D9-4E87-A461-E832B469F78B}"
@@ -66,6 +64,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{6173D4
 		.github\workflows\IntegrationTest.yml = .github\workflows\IntegrationTest.yml
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Engines.LiabilityValidator", "Engines\BMS.Engines.LiabilityValidator\BMS.Engines.LiabilityValidator.csproj", "{F4F0638A-F184-42E5-AF07-22DC1F4C98EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,10 +88,6 @@ Global
 		{3C871056-370F-4349-BFC9-B5F230468B63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C871056-370F-4349-BFC9-B5F230468B63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C871056-370F-4349-BFC9-B5F230468B63}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3B3AC8DB-B0DD-40FA-916B-A4C1CB1CD91E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3B3AC8DB-B0DD-40FA-916B-A4C1CB1CD91E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3B3AC8DB-B0DD-40FA-916B-A4C1CB1CD91E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3B3AC8DB-B0DD-40FA-916B-A4C1CB1CD91E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A583C881-CE7B-45FB-BEFE-0D1843A0C9B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A583C881-CE7B-45FB-BEFE-0D1843A0C9B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A583C881-CE7B-45FB-BEFE-0D1843A0C9B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -104,6 +100,10 @@ Global
 		{9BB97CEA-130B-4208-ADED-6DBEB5282C85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BB97CEA-130B-4208-ADED-6DBEB5282C85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BB97CEA-130B-4208-ADED-6DBEB5282C85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4F0638A-F184-42E5-AF07-22DC1F4C98EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4F0638A-F184-42E5-AF07-22DC1F4C98EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4F0638A-F184-42E5-AF07-22DC1F4C98EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4F0638A-F184-42E5-AF07-22DC1F4C98EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,10 +113,10 @@ Global
 		{1492EBEA-9291-42DF-944E-021BF5C86D4F} = {86DA98F7-8D17-4750-BE20-3BA55ADE3EA8}
 		{5746E285-8660-488B-BB36-DC2714209D11} = {1FE47122-C554-4746-A027-2CC4D812EC46}
 		{3C871056-370F-4349-BFC9-B5F230468B63} = {1FE47122-C554-4746-A027-2CC4D812EC46}
-		{3B3AC8DB-B0DD-40FA-916B-A4C1CB1CD91E} = {90142AB1-6E89-49B8-AE05-AE3326B7A7C9}
 		{A583C881-CE7B-45FB-BEFE-0D1843A0C9B1} = {18EDF1A3-2174-4DD3-B37C-5098D4E3EB8E}
 		{087A5628-86D9-4E87-A461-E832B469F78B} = {24039E6E-7A1B-4D67-866A-26DC681990C4}
 		{C9833D90-B0B8-4545-A43C-57053B6A2024} = {8CBEA9D3-9231-42DF-A821-3CC5767D5C94}
+		{F4F0638A-F184-42E5-AF07-22DC1F4C98EA} = {90142AB1-6E89-49B8-AE05-AE3326B7A7C9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3BDD7DDB-C5E5-4460-BFD8-4275C0C31DCA}
