@@ -65,12 +65,12 @@ services:
       dockerfile: ./LocalEnv/Dockerfile
     ports:
       - 8888:8888
-#      - 7091:7071
+      - 7091:7071
     volumes:
      - ./workspace:/workspace
     environment:
       - ASRS_EMULATOR_PORT=8888
-      - ASPNETCORE_URLS=http://+:8888
+      - ASPNETCORE_URLS=http://+:8888;http://+:7091
       #;http://+:7071
       
 ############################

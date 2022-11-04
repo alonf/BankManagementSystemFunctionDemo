@@ -1,4 +1,4 @@
-name: Build anf integration tests
+name: Build and run integration tests
 
 on:
   workflow_dispatch:
@@ -18,9 +18,7 @@ on:
     - '.github/**'
     - 'infra/**'
     
-env:
-  CosmosDbConnectionString: ${{ secrets.BMS_COSMOSDB_CONNECTION_STRING }}
-  SignalRConnectionString: ${{ secrets.BMS_SIGNALR_CONNECTION_STRING }}
+
  
 jobs:
   build:
@@ -50,6 +48,9 @@ jobs:
     - name: Docker ps
       run: docker ps
     - name: Run all functions and test
+      env:
+        CosmosDbConnectionString: ${{ secrets.BMS_COSMOSDB_CONNECTION_STRING }}
+        SignalRConnectionString: ${{ secrets.BMS_SIGNALR_CONNECTION_STRING }}
       run: |
         cd Accessors/BMS.Accessors.CheckingAccount
         func start --port 7042 &
