@@ -49,10 +49,10 @@ jobs:
         path: ${{ env.OUTPUT_PATH }}
         
     - name: Download Artifact
-        uses: actions/download-artifact@v1
-        with:
-          name: ${{ matrix.name }}
-          path: ${{ env.OUTPUT_PATH }} 
+      uses: actions/download-artifact@v1
+      with:
+        name: ${{ matrix.name }}
+        path: ${{ env.OUTPUT_PATH }} 
           
     - name: Azure Login
       uses: azure/login@v1
@@ -60,7 +60,7 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
         
     - name: Deploy Function to Azure
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${GITHUB_REF##*/}-${{ matrix.name }}
-          package: ${{ env.OUTPUT_PATH }}
+      uses: Azure/functions-action@v1
+      with:
+        app-name: ${GITHUB_REF##*/}-${{ matrix.name }}
+        package: ${{ env.OUTPUT_PATH }}
