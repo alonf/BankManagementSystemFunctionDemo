@@ -40,7 +40,8 @@ jobs:
     - name: Install function tools
       run: |
         echo '**************************************************************************'
-        echo $SignalRConnectionString
+        echo $SignalRConnectionString | more
+        echo $CosmosDbConnectionString
         echo '**************************************************************************'
         wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
         sudo dpkg -i packages-microsoft-prod.deb
