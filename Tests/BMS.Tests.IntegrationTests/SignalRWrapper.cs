@@ -12,14 +12,19 @@ public class SignalRWrapper : ISignalRWrapper
     private readonly List<AccountCallbackRequest> _signalRMessagesReceived = new();
     private readonly SemaphoreSlim _signalRMessageReceived = new(0);
 
-    public SignalRWrapper(ITestOutputHelper testOutputHelper)
+    public SignalRWrapper(ITestOutputHelper testOutputHelper, IFunctionKeyProvider keyProvider)
     {
         var signalRUrl = Environment.GetEnvironmentVariable("BMS_SIGNALR_URL");
         if (string.IsNullOrEmpty(signalRUrl))
             signalRUrl = "http://localhost:7043/api/";
 
+        var signalrNegotiateFunctionKey = keyProvider.GetKey("NEGOTIATE") ?? String.Empty;
+
         _signalRHubConnection = new HubConnectionBuilder()
-            .WithUrl(signalRUrl, c => c.Headers.Add("x-application-user-id", "Teller1"))
+            .WithUrl(signalRUrl, c => {
+                c.Headers.Add("x-application-user-id", "Teller1");
+                c.Headers.Add("x-function-key", signalrNegotiateFunctionKey);
+            })
             .WithAutomaticReconnect().ConfigureLogging(lb =>
             {
                 lb.AddProvider(new XUnitLoggerProvider(testOutputHelper));

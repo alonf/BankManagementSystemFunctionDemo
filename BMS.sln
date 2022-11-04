@@ -60,8 +60,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{6173D4
 		.github\workflows\DeployFunctionApp.yml = .github\workflows\DeployFunctionApp.yml
 		.github\workflows\DeployFunctionAppInfra.yml = .github\workflows\DeployFunctionAppInfra.yml
 		.github\workflows\FullCICD.yml = .github\workflows\FullCICD.yml
-		.github\workflows\FunctionAppIntegrationTest.yml = .github\workflows\FunctionAppIntegrationTest.yml
 		.github\workflows\IntegrationTest.yml = .github\workflows\IntegrationTest.yml
+		.github\workflows\FunctionAppIntegrationTest.yml = .github\workflows\FunctionAppIntegrationTest.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMS.Engines.LiabilityValidator", "Engines\BMS.Engines.LiabilityValidator\BMS.Engines.LiabilityValidator.csproj", "{F4F0638A-F184-42E5-AF07-22DC1F4C98EA}"

@@ -1,4 +1,4 @@
-name: Functions App Integration Tests
+name: Cloud Deployed Function App Integration Tests
 
 on:
   workflow_dispatch:
@@ -19,12 +19,12 @@ jobs:
     - name: Find functions apps urls 
       run: |
           az config set extension.use_dynamic_install=yes_without_prompt
-          export AccoountManagerUrl=$(az containerapp show --resource-group "bmsd-cont-app-rg" --name accountmanager --query properties.configuration.ingress.fqdn | tr -d '"')
-          export SignalRUrl=$(az containerapp show --resource-group "bmsd-cont-app-rg" --name notificationmanager --query properties.configuration.ingress.fqdn | tr -d '"')
-          echo "Account Manager Url: $AccoountManagerUrl"
-          echo "Notification Manager Url: $SignalRUrl"
-          echo "ACCOUNT_MANAGER_URL=https://$AccoountManagerUrl" >> $GITHUB_ENV
-          echo "BMSD_SIGNALR_URL=https://$SignalRUrl"  >> $GITHUB_ENV
+          export AccoountManagerKey=$(az functionapp keys list --resource-group "bms-func-app-rg" --name master-bms-accountmanager --query functionKeys.default | tr -d '"')
+          export negotiateKey=$(az functionapp keys list --resource-group "bms-func-app-rg" --name master-bms-notificationmanager --query functionKeys.default | tr -d '"')
+          echo "ACCOUNT_MANAGER_URL=https://master-bms-accountmanager.azurewebsites.net" >> $GITHUB_ENV
+          echo "BMS_SIGNALR_URL=https://master-bms-notificationmanager.azurewebsites.net"  >> $GITHUB_ENV
+          echo "ACCOUNTMANAGER_FUNCTION_KEY=$AccoountManagerKey" >> $GITHUB_ENV
+          echo "NEGOTIATE_FUNCTION_KEY=$negotiateKey" >> $GITHUB_ENV
     - name: Checkout code
       uses: actions/checkout@v3
     - name: Setup .NET
@@ -40,5 +40,5 @@ jobs:
         echo testing function app deployment 
         echo with manager url: ${{ env.ACCOUNT_MANAGER_URL }}
         echo and notification url: ${{ env.BMSD_SIGNALR_URL }}
-        dotnet test --verbosity normal --configuration Release Tests/MSD.Tests.IntegrationTests/MSD.Tests.IntegrationTests.csproj
+        dotnet test --verbosity normal --configuration Release Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
     

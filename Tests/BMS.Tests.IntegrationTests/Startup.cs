@@ -13,6 +13,7 @@ public class Startup
 
         services.AddRobustHttpClient<IntegrationTest>(baseUrl: accountManagerUrl);
         services.AddSingleton<ISignalRWrapperFactory, SignalRWrapperFactory>();
+        services.AddSingleton<IFunctionKeyProvider, FunctionKeyProvider>();
     }
     
 }
