@@ -1,4 +1,4 @@
-name: Integration Tests
+name: Build anf integration tests
 
 on:
   workflow_dispatch:
@@ -21,9 +21,10 @@ on:
 env:
   CosmosDbConnectionString: ${{ secrets.BMS_COSMOSDB_CONNECTION_STRING }}
   SignalRConnectionString: ${{ secrets.BMS_SIGNALR_CONNECTION_STRING }}
+ 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     environment: test
     defaults:
       run:
@@ -36,16 +37,33 @@ jobs:
       with:
         dotnet-version: |
           6.0.x
+    - name: Install function tools
+      run: |
+        wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+        sudo dpkg -i packages-microsoft-prod.deb
+        sudo apt-get update
+        sudo apt-get install azure-functions-core-tools-4
     - name: Docker Compose Up
-      run: docker compose -f docker-compose.yml -f docker-compose-github-test.yml up -d
+      run: docker compose -f docker-compose.yml up -d
     - name: Restore dependencies
-      run: dotnet restore BMSD.sln
-    - name: Build
-      run: dotnet build --no-restore BMSD.sln
+      run: dotnet restore BMS.sln
     - name: Docker ps
       run: docker ps
-    - name: Test
-      run: dotnet test --no-build --verbosity normal --configuration Debug Tests/BMSD.Tests.IntegrationTests/BMSD.Tests.IntegrationTests.csproj
+    - name: Run all functions and test
+      run: |
+        cd Accessors/BMS.Accessors.CheckingAccount
+        func start --port 7042 &
+        cd ../../Accessors/BMS.Accessors.UserInfo
+        func start --port 7274 &
+        cd ../../Engines/LiabilityValidator
+        func start --port 7248 &
+        cd ../../Managers/BMS.Managers.Notification
+        func start --port 7043 &
+        cd ../../Managers/BMS.Managers.Account
+        func start --port 7071 &
+        cd ../..
+        sleep 60
+        dotnet test --verbosity normal --configuration Debug Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
     - name: Dump docker logs on failure
       if: failure()
       uses: jwalton/gh-docker-logs@v1

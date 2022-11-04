@@ -37,8 +37,8 @@ jobs:
       #  BMSD_SIGNALR_URL: ${{ env.NotificationManagerFQDN }}
       #  ACCOUNT_MANAGER_URL: ${{ env.AccountManagerFQDN }}
       run: |
-        echo testing ACA deployment 
+        echo testing function app deployment 
         echo with manager url: ${{ env.ACCOUNT_MANAGER_URL }}
         echo and notification url: ${{ env.BMSD_SIGNALR_URL }}
-        dotnet test --verbosity normal --configuration Release Tests/BMSD.Tests.IntegrationTests/BMSD.Tests.IntegrationTests.csproj
+        dotnet test --verbosity normal --configuration Release Tests/MSD.Tests.IntegrationTests/MSD.Tests.IntegrationTests.csproj
     

@@ -59,7 +59,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{C983
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{6173D423-2F1B-4449-B270-112E17587821}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\DeployFunctionsApps.yml = .github\workflows\DeployFunctionsApps.yml
+		.github\workflows\DeployFunctionApp.yml = .github\workflows\DeployFunctionApp.yml
+		.github\workflows\DeployFunctionAppInfra.yml = .github\workflows\DeployFunctionAppInfra.yml
 		.github\workflows\FullCICD.yml = .github\workflows\FullCICD.yml
 		.github\workflows\FunctionsAppsIntegrationTest.yml = .github\workflows\FunctionsAppsIntegrationTest.yml
 		.github\workflows\IntegrationTest.yml = .github\workflows\IntegrationTest.yml

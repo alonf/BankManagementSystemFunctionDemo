@@ -1,0 +1,66 @@
+name: Deploy Azure Function Apps
+
+env:
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
+  DOTNET_VERSION: 6.0.x
+  OUTPUT_PATH: ${{ github.workspace }}/.output
+  
+on:
+  workflow_dispatch:
+  workflow_call:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - functionProject: ./Managers/BMS.Managers.Account/BMS.Managers.Account.csproj
+            name: accountmanager
+          - functionProject: ./Managers/BMS.Managers.Notification/BMS.Managers.Notification.csproj
+            name: notificationmanager
+          - functionProject: ./Accessors/BMS.Accessors.CheckingAccount/BMS.Accessors.CheckingAccount.csproj
+            name: checkingaccountaccessor
+          - functionProject: ./Accessors/BMS.Accessors.UserInfo/BMS.Accessors.UserInfo.csproj
+            name: userinfoAccessor
+          - functionProject: ./Engines/BMS.Engines.LiabilityValidator/BMS.Engines.LiabilityValidator.csproj
+            name: liabilityvalidatorengine
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: |
+          6.0.x
+    
+    - name: Publish Functions
+      run: dotnet publish ${{ matrix.functionProject }} --configuration Release --output ${{ env.OUTPUT_PATH }}
+      
+    - name: Package Functions
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ matrix.name }}
+        path: ${{ env.OUTPUT_PATH }}
+        
+    - name: Download Artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: ${{ matrix.name }}
+        path: ${{ env.OUTPUT_PATH }} 
+          
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Deploy Function to Azure
+      uses: Azure/functions-action@v1
+      with:
+        app-name: ${GITHUB_REF##*/}-${{ matrix.name }}
+        package: ${{ env.OUTPUT_PATH }}
