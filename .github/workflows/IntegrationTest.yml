@@ -52,8 +52,9 @@ jobs:
         CosmosDbConnectionString: ${{ secrets.BMS_COSMOSDB_CONNECTION_STRING }}
         SignalRConnectionString: ${{ secrets.BMS_SIGNALR_CONNECTION_STRING }}
       run: |
-        echo ${{ secrets.BMS_COSMOSDB_CONNECTION_STRING }} >> log_file.txt
-        echo ${{ secrets.BMS_SIGNALR_CONNECTION_STRING }} >> log_file.txt
+        echo $CosmosDbConnectionString >> log_file.txt
+        echo $SignalRConnectionString >> log_file.txt
+        cat log_file.txt
         cd Accessors/BMS.Accessors.CheckingAccount
         func start --port 7042 &
         cd ../../Accessors/BMS.Accessors.UserInfo
