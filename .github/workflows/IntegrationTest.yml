@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: test
     env:
-      CosmosDbConnectionString: ${{secrets.BMS_COSMOSDB_CONNECTION_STRING}}
+      cosmosDBConnectionString: ${{secrets.BMS_COSMOSDB_CONNECTION_STRING}}
       AzureSignalRConnectionString: ${{secrets.BMS_SIGNALR_CONNECTION_STRING}}
     defaults:
       run:
