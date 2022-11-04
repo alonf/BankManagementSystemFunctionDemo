@@ -45,6 +45,19 @@ jobs:
       run: dotnet build --no-restore BMS.sln
     - name: Docker ps
       run: docker ps
+    - name: Run all functions for the test
+      run: |
+        cd Accessors/BMS.Accessors.CheckingAccount
+        func start &
+        cd ../../Accessors/BMS.Accessors.UserInfo
+        func start &
+        cd ../../Engines/LiabilityValidator
+        func start &
+        cd ../../Managers/BMS.Managers.Notification
+        func start &
+        cd ../../Managers/BMS.Managers.Account
+        func start &
+        cd ../..
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Debug Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
     - name: Dump docker logs on failure
