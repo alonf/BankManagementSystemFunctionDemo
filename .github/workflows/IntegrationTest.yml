@@ -1,4 +1,4 @@
-name: Build anf integration tests
+name: Build and run integration tests
 
 on:
   workflow_dispatch:
@@ -18,14 +18,15 @@ on:
     - '.github/**'
     - 'infra/**'
     
-env:
-  CosmosDbConnectionString: ${{ secrets.BMS_COSMOSDB_CONNECTION_STRING }}
-  SignalRConnectionString: ${{ secrets.BMS_SIGNALR_CONNECTION_STRING }}
+
  
 jobs:
   build:
     runs-on: ubuntu-latest
     environment: test
+    env:
+      cosmosDBConnectionString: ${{secrets.BMS_COSMOSDB_CONNECTION_STRING}}
+      AzureSignalRConnectionString: ${{secrets.BMS_SIGNALR_CONNECTION_STRING}}
     defaults:
       run:
         shell: bash
@@ -64,6 +65,7 @@ jobs:
         cd ../..
         sleep 60
         dotnet test --verbosity normal --configuration Debug Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
+             
     - name: Dump docker logs on failure
       if: failure()
       uses: jwalton/gh-docker-logs@v1

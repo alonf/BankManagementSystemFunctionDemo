@@ -30,6 +30,17 @@ jobs:
           - functionProject: ./Engines/BMS.Engines.LiabilityValidator/BMS.Engines.LiabilityValidator.csproj
             name: liabilityvalidatorengine
     steps:
+    - name: "Get branch name and save to env"
+      env:
+        IS_PR: ${{ github.EVENT_NAME == 'pull_request' }}
+      run: |
+        if ${IS_PR}; then
+          BRANCH_NAME="${GITHUB_HEAD_REF}"
+        else
+          BRANCH_NAME="${GITHUB_REF##*/}"
+        fi
+        echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+        
     - name: Checkout repository
       uses: actions/checkout@v3
     
@@ -62,5 +73,5 @@ jobs:
     - name: Deploy Function to Azure
       uses: Azure/functions-action@v1
       with:
-        app-name: ${GITHUB_REF##*/}-${{ matrix.name }}
+        app-name: ${{ env.BRANCH_NAME }}-${{ matrix.name }}
         package: ${{ env.OUTPUT_PATH }}

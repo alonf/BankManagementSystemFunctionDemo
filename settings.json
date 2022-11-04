@@ -2,7 +2,7 @@
   "UpstreamSettings": {
     "Templates": [
       {
-        "UrlTemplate": "http://localhost:7043/runtime/webhooks/signalr",
+        "UrlTemplate": "http://localhost:7091/runtime/webhooks/signalr",
         "EventPattern": "*",
         "HubPattern": "*",
         "CategoryPattern": "*"
