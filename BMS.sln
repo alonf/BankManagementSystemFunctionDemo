@@ -60,7 +60,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{6173D4
 		.github\workflows\DeployFunctionApp.yml = .github\workflows\DeployFunctionApp.yml
 		.github\workflows\DeployFunctionAppInfra.yml = .github\workflows\DeployFunctionAppInfra.yml
 		.github\workflows\FullCICD.yml = .github\workflows\FullCICD.yml
-		.github\workflows\FunctionsAppsIntegrationTest.yml = .github\workflows\FunctionsAppsIntegrationTest.yml
+		.github\workflows\FunctionAppIntegrationTest.yml = .github\workflows\FunctionAppIntegrationTest.yml
 		.github\workflows\IntegrationTest.yml = .github\workflows\IntegrationTest.yml
 	EndProjectSection
 EndProject
