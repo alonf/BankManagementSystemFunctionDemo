@@ -10,8 +10,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Azure.Storage.Queues;
-using Newtonsoft.Json;
 
 namespace BMS.Accessors.CheckingAccount
 {
@@ -33,7 +31,7 @@ namespace BMS.Accessors.CheckingAccount
                     collectionName: CollectionName,
                     ConnectionStringSetting = "cosmosDBConnectionString")]
                     DocumentClient documentClient, 
-                [Queue("client-response-queue", Connection = "QueueConnectionString")] QueueClient queueClient,
+                [Queue("client-response-queue", Connection = "QueueConnectionString")] IAsyncCollector<AccountCallbackResponse> responseQueue,
                     ILogger log)
         {
             var responseCallBack = new AccountCallbackResponse()
@@ -51,25 +49,17 @@ namespace BMS.Accessors.CheckingAccount
 
                 var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
                 await cosmosDBWrapper.UpdateBalanceAsync(requestItem.RequestId, requestItem.AccountId, requestItem.Amount);
-
-                await EnqueueMessageAsync(queueClient, responseCallBack);
+                await responseQueue.AddAsync(responseCallBack);
             }
             catch(Exception ex)
             {
                 log.LogError($"UpdateAccountAsync: error: {ex}");
                 responseCallBack.IsSuccessful = false;
                 responseCallBack.ResultMessage = "Error updating the balance. Retrying";
-                await EnqueueMessageAsync(queueClient, responseCallBack); 
+                await responseQueue.AddAsync(responseCallBack);
 
                 throw; //retry, todo: check if the error is transient to spare the retry
             }
-        }
-
-        private static async Task EnqueueMessageAsync(QueueClient queueClient, AccountCallbackResponse responseCallBack)
-        {
-            await queueClient.CreateIfNotExistsAsync();
-            var message = JsonConvert.SerializeObject(responseCallBack);
-            await queueClient.SendMessageAsync(message);
         }
 
         [FunctionName("GetBalance")]

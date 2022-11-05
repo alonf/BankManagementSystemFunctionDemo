@@ -1,6 +1,6 @@
 ﻿namespace BMS.Managers.Account.Contracts.Submits
 {
-    internal class AccountTransactionSubmit
+    public class AccountTransactionSubmit
     {
         public string RequestId { get; set; }
 
