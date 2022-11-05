@@ -32,13 +32,13 @@ jobs:
       with:
         dotnet-version: |
           6.0.x
-    - name: Test
-      #env:
-      #  BMSD_SIGNALR_URL: ${{ env.NotificationManagerFQDN }}
-      #  ACCOUNT_MANAGER_URL: ${{ env.AccountManagerFQDN }}
+     - name: Test
+       run: |
+         dotnet build --configuration Release Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj 
+     - name: Test
       run: |
         echo testing function app deployment 
         echo with manager url: ${{ env.ACCOUNT_MANAGER_URL }}
-        echo and notification url: ${{ env.BMSD_SIGNALR_URL }}
-        dotnet test --verbosity normal --configuration Release Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
+        echo and notification url: ${{ env.BMS_SIGNALR_URL }}
+        dotnet test --no-build --verbosity normal --configuration Release Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj
     
