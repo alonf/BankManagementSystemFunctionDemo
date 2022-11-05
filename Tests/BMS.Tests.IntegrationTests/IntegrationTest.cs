@@ -17,8 +17,9 @@ namespace BMS.Tests.IntegrationTests
             _httpClient = httpClientFactory.CreateClient("IntegrationTest");
             var functionKey = functionKeyProvider.GetKey("AccountManager");
             _httpClient.DefaultRequestHeaders.Add("x-functions-key", functionKey);
-
+            testOutputHelper.WriteLine("Start testing with account manager url: " + _httpClient.BaseAddress);
         }
+        
         private JsonSerializerOptions SerializeOptions => new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
