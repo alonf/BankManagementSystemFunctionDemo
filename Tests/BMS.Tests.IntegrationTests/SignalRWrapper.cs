@@ -3,6 +3,7 @@ using BMS.Tests.IntegrationTests.Logging;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace BMS.Tests.IntegrationTests;
 
@@ -47,12 +48,13 @@ public class SignalRWrapper : ISignalRWrapper
             _signalRHubConnection.On<AccountCallbackRequest>("accountcallback", message =>
             {
                 _signalRMessagesReceived.Add(message);
+                TestOutputHelper.WriteLine($"SignalR received message: {message}");
                 _signalRMessageReceived.Release();
             });
         }
         catch (Exception e)
         {
-            TestOutputHelper.WriteLine(e.Message);
+            TestOutputHelper.WriteLine($"Error with SignalR: {e.Message}");
             throw;
         }
     }
