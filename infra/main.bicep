@@ -88,9 +88,9 @@ module BMSCheckingAccountAccessorFunctionApp 'modules/functions-app.bicep' = {
     ]
 }
 
-var getBalanceUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/getBalanceUrl?key=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
-var getAccountTransactionHistoryUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/GetAccountTransactionHistory?key=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
-var getAccountInfoUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/GetAccountInfo?key=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
+var getBalanceUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/getBalanceUrl?code=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
+var getAccountTransactionHistoryUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/GetAccountTransactionHistory?code=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
+var getAccountInfoUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/GetAccountInfo?code=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
 
 module BMSUserInfoAccessorFunctionApp 'modules/functions-app.bicep' = {
   name: BMSUserInfoAccessorServiceFunctionAppName
@@ -117,7 +117,7 @@ module BMSUserInfoAccessorFunctionApp 'modules/functions-app.bicep' = {
     ]
 }
 
-var getAccountIdByEmailUrl = '${BMSUserInfoAccessorFunctionApp}.outputs.functionBaseUrl}/GetAccountIdByEmail?key=${BMSUserInfoAccessorFunctionApp.outputs.functionAppKey}'
+var getAccountIdByEmailUrl = '${BMSUserInfoAccessorFunctionApp}.outputs.functionBaseUrl}/GetAccountIdByEmail?code=${BMSUserInfoAccessorFunctionApp.outputs.functionAppKey}'
 
 
 
@@ -148,7 +148,7 @@ module BMSLiabilityValidatorEngineFunctionApp 'modules/functions-app.bicep' = {
     ]
 }
 
-var checkLiabilityUrl = '${BMSLiabilityValidatorEngineFunctionApp.outputs.functionBaseUrl}/CheckLiabilityUrl?key=${BMSLiabilityValidatorEngineFunctionApp.outputs.functionAppKey}'
+var checkLiabilityUrl = '${BMSLiabilityValidatorEngineFunctionApp.outputs.functionBaseUrl}/CheckLiabilityUrl?code=${BMSLiabilityValidatorEngineFunctionApp.outputs.functionAppKey}'
 
 
 module BMSNotificationManagerFunctionApp 'modules/functions-app.bicep' = {
@@ -222,7 +222,7 @@ module BMSAccountManagerFunctionApp 'modules/functions-app.bicep' = {
 }
 
 
-output accountManagerUrl string = '${BMSAccountManagerFunctionApp.outputs.functionBaseUrl}?key=${BMSNotificationManagerFunctionApp.outputs.functionAppKey}'
-output negotiateUrl string = '${BMSNotificationManagerFunctionApp.outputs.functionBaseUrl}/Negotiate?key=${BMSNotificationManagerFunctionApp.outputs.functionAppKey}'
+output accountManagerUrl string = '${BMSAccountManagerFunctionApp.outputs.functionBaseUrl}?code=${BMSNotificationManagerFunctionApp.outputs.functionAppKey}'
+output negotiateUrl string = '${BMSNotificationManagerFunctionApp.outputs.functionBaseUrl}/Negotiate?code=${BMSNotificationManagerFunctionApp.outputs.functionAppKey}'
 
       
