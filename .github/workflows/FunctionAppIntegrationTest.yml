@@ -32,9 +32,9 @@ jobs:
       with:
         dotnet-version: |
           6.0.x
-    - name: Build
+    - name: Build the test
       run: |
-      dotnet build --configuration Release Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj 
+        dotnet build --configuration Release Tests/BMS.Tests.IntegrationTests/BMS.Tests.IntegrationTests.csproj 
     - name: Test
       run: |
         echo testing function app deployment 
