@@ -12,4 +12,9 @@ resource redisCache 'Microsoft.Cache/Redis@2022-06-01' = {
   }
 }
 
-output redisConnectionString string = redisCache.properties.hostName
+output redisConnectionString string = concat(redisCache.properties.hostName, ':', redisCache.properties.sslPort, 
+    ',password=', redisCache.properties.accessKeys.primaryKey, 
+    ',ssl=True,abortConnect=False,syncTimeout=2000,allowAdmin=true')
+
+
+    
