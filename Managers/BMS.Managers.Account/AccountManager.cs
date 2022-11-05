@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Web.Http;
-using Azure.Storage.Queues;
 using AutoMapper;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
@@ -44,7 +43,7 @@ namespace BMS.Managers.Account
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
             HttpRequest req,
             [Queue("customer-registration-queue", Connection = "QueueConnectionString")]
-            QueueClient customerRegistrationQueue)
+            IAsyncCollector<Contracts.Submits.CustomerRegistrationInfo> customerRegistrationQueue)
         {
             try
             {
@@ -66,12 +65,10 @@ namespace BMS.Managers.Account
 
                 //create a customer registration request for the User accessor
                 var customerRegistrationInfoSubmit = _mapper.Map<Contracts.Submits.CustomerRegistrationInfo>(data);
-                var messagePayload = JsonConvert.SerializeObject(customerRegistrationInfoSubmit);
-
+                
                 //push the customer registration request
-                await customerRegistrationQueue.CreateIfNotExistsAsync();
-                await customerRegistrationQueue.SendMessageAsync(messagePayload);
-                _logger.LogInformation($"RegisterCustomer request added: {messagePayload}");
+                await customerRegistrationQueue.AddAsync(customerRegistrationInfoSubmit);
+                _logger.LogInformation($"RegisterCustomer request added for customer: {customerRegistrationInfoSubmit.FullName}");
 
                 return new OkObjectResult("Register customer request received");
             }
@@ -238,7 +235,7 @@ namespace BMS.Managers.Account
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
             HttpRequest req,
             [Queue("account-transaction-queue", Connection = "QueueConnectionString")]
-            QueueClient accountTransactionQueue)
+            IAsyncCollector<Contracts.Submits.AccountTransactionSubmit> accountTransactionQueue)
         {
             try
             {
@@ -260,12 +257,10 @@ namespace BMS.Managers.Account
 
                 //create a customer deposit request for the User accessor
                 var accountTransactionSubmit = _mapper.Map<Contracts.Submits.AccountTransactionSubmit>(data);
-                var messagePayload = JsonConvert.SerializeObject(accountTransactionSubmit);
-
+                
                 //push the customer registration request
-                await accountTransactionQueue.CreateIfNotExistsAsync();
-                await accountTransactionQueue.SendMessageAsync(messagePayload);
-                _logger.LogInformation($"Deposit request added: {messagePayload}");
+                await accountTransactionQueue.AddAsync(accountTransactionSubmit);
+                _logger.LogInformation($"Deposit request added for account: {accountTransactionSubmit.AccountId}");
 
                 return new OkObjectResult("Deposit request received");
             }
@@ -286,7 +281,7 @@ namespace BMS.Managers.Account
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
             HttpRequest req,
             [Queue("account-transaction-queue", Connection = "QueueConnectionString")]
-            QueueClient accountTransactionQueue)
+            IAsyncCollector<Contracts.Submits.AccountTransactionSubmit> accountTransactionQueue)
         {
             try
             {
@@ -316,12 +311,10 @@ namespace BMS.Managers.Account
                 data.Amount = -data.Amount;
                 //create a customer registration request for the User accessor
                 var accountTransactionSubmit = _mapper.Map<Contracts.Submits.AccountTransactionSubmit>(data);
-                var messagePayload = JsonConvert.SerializeObject(accountTransactionSubmit);
-
+               
                 //push the customer registration request
-                await accountTransactionQueue.CreateIfNotExistsAsync();
-                await accountTransactionQueue.SendMessageAsync(messagePayload);
-                _logger.LogInformation($"Withdraw request added: {messagePayload}");
+                await accountTransactionQueue.AddAsync(accountTransactionSubmit);
+                _logger.LogInformation($"Withdraw request added for account: {accountTransactionSubmit.AccountId}");
 
                 return new OkObjectResult("Withdraw request received");
             }

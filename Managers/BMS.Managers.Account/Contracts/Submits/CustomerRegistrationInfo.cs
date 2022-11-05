@@ -1,7 +1,7 @@
 ﻿
 namespace BMS.Managers.Account.Contracts.Submits
 {
-    internal class CustomerRegistrationInfo
+    public class CustomerRegistrationInfo
     {
         public string RequestId { get; set; }
 
