@@ -11,8 +11,15 @@ jobs:
     needs: call-ci-workflow
     uses: ./.github/workflows/DeployFunctionAppInfra.yml
     secrets: inherit
-  call-deploy-function-app-workflow:
+  wait-for-function-app-infra-completion:
+    runs-on: ubuntu-latest
     needs: call-deploy-function-app-infra-workflow
+    steps:
+    - name: Sleep for 60 seconds to let the Function App infra finished deployment and start
+      run: sleep 60
+      shell: bash
+  call-deploy-function-app-workflow:
+    needs: wait-for-function-app-infra-completion
     uses: ./.github/workflows/DeployFunctionApp.yml
     secrets: inherit
   delay:
