@@ -21,8 +21,8 @@ jobs:
           az config set extension.use_dynamic_install=yes_without_prompt
           export AccoountManagerKey=$(az functionapp keys list --resource-group "bms-func-app-rg" --name master-bms-accountmanager --query functionKeys.default | tr -d '"')
           export negotiateKey=$(az functionapp keys list --resource-group "bms-func-app-rg" --name master-bms-notificationmanager --query functionKeys.default | tr -d '"')
-          echo "ACCOUNT_MANAGER_URL=https://master-bms-accountmanager.azurewebsites.net/api" >> $GITHUB_ENV
-          echo "BMS_SIGNALR_URL=https://master-bms-notificationmanager.azurewebsites.net/api"  >> $GITHUB_ENV
+          echo "ACCOUNT_MANAGER_URL=https://master-bms-accountmanager.azurewebsites.net/api/" >> $GITHUB_ENV
+          echo "BMS_SIGNALR_URL=https://master-bms-notificationmanager.azurewebsites.net/api/"  >> $GITHUB_ENV
           echo "ACCOUNTMANAGER_FUNCTION_KEY=$AccoountManagerKey" >> $GITHUB_ENV
           echo "NEGOTIATE_FUNCTION_KEY=$negotiateKey" >> $GITHUB_ENV
     - name: Checkout code
