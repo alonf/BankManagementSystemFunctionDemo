@@ -7,8 +7,12 @@ jobs:
   call-ci-workflow:
     uses: ./.github/workflows/IntegrationTest.yml
     secrets: inherit
-  call-deploy-function-app-workflow:
+  call-deploy-function-app-infra-workflow:
     needs: call-ci-workflow
+    uses: ./.github/workflows/DeployFunctionAppInfra.yml
+    secrets: inherit
+  call-deploy-function-app-workflow:
+    needs: call-deploy-function-app-infra-workflow
     uses: ./.github/workflows/DeployFunctionApp.yml
     secrets: inherit
   delay:
