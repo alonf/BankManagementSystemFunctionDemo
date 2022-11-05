@@ -201,7 +201,7 @@ module BMSAccountManagerFunctionApp 'modules/functions-app.bicep' = {
        value: getAccountTransactionHistoryUrl
      }
      {
-       name: 'getAccountIdByEmailUrl'
+       name: 'userAccessorUrl'
        value: getAccountIdByEmailUrl
      }
      {
