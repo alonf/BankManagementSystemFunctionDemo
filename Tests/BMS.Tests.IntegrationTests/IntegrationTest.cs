@@ -5,15 +5,19 @@ using BMS.Tests.IntegrationTests.Contracts;
 
 namespace BMS.Tests.IntegrationTests
 {
+    
     public class IntegrationTest
     {
         private readonly HttpClient _httpClient;
         private readonly ISignalRWrapper _signalR;
         private readonly int _signalRWaitingTimoutInSeconds = 40;
-        public IntegrationTest(IHttpClientFactory httpClientFactory, ISignalRWrapperFactory signalRWrapperFactory, ITestOutputHelper testOutputHelper)
+        public IntegrationTest(IHttpClientFactory httpClientFactory, ISignalRWrapperFactory signalRWrapperFactory, ITestOutputHelper testOutputHelper, IFunctionKeyProvider functionKeyProvider)
         {
             _signalR = signalRWrapperFactory.Create(testOutputHelper);
             _httpClient = httpClientFactory.CreateClient("IntegrationTest");
+            var functionKey = functionKeyProvider.GetKey("AccountManager");
+            _httpClient.DefaultRequestHeaders.Add("x-functions-key", functionKey);
+
         }
         private JsonSerializerOptions SerializeOptions => new JsonSerializerOptions
         {
