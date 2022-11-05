@@ -9,7 +9,7 @@ jobs:
     secrets: inherit
   call-deploy-function-app-workflow:
     needs: call-ci-workflow
-    uses: ./.github/workflows/DeployFunctionsApp.yml
+    uses: ./.github/workflows/DeployFunctionApp.yml
     secrets: inherit
   delay:
     runs-on: ubuntu-latest
