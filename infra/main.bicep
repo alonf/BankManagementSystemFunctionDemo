@@ -89,7 +89,7 @@ module BMSCheckingAccountAccessorFunctionApp 'modules/functions-app.bicep' = {
     ]
 }
 
-var getBalanceUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/getBalanceUrl?code=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
+var getBalanceUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/GetBalance?code=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
 var getAccountTransactionHistoryUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/GetAccountTransactionHistory?code=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
 var getAccountInfoUrl = '${BMSCheckingAccountAccessorFunctionApp.outputs.functionBaseUrl}/GetAccountInfo?code=${BMSCheckingAccountAccessorFunctionApp.outputs.functionAppKey}'
 
@@ -148,7 +148,7 @@ module BMSLiabilityValidatorEngineFunctionApp 'modules/functions-app.bicep' = {
     ]
 }
 
-var checkLiabilityUrl = '${BMSLiabilityValidatorEngineFunctionApp.outputs.functionBaseUrl}/CheckLiabilityUrl?code=${BMSLiabilityValidatorEngineFunctionApp.outputs.functionAppKey}'
+var liabilityValidatorUrl = '${BMSLiabilityValidatorEngineFunctionApp.outputs.functionBaseUrl}/CheckLiability?code=${BMSLiabilityValidatorEngineFunctionApp.outputs.functionAppKey}'
 
 
 module BMSNotificationManagerFunctionApp 'modules/functions-app.bicep' = {
@@ -205,8 +205,8 @@ module BMSAccountManagerFunctionApp 'modules/functions-app.bicep' = {
        value: getAccountIdByEmailUrl
      }
      {
-       name: 'checkLiabilityUrl'
-       value: checkLiabilityUrl
+       name: 'liabilityValidatorUrl'
+       value: liabilityValidatorUrl
      }
      {
          name: 'RedisConnectionString'
