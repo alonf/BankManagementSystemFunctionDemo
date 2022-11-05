@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "BMS.Tests.IntegrationTests": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ACCOUNT_MANAGER_URL": "https://master-bms-accountmanager.azurewebsites.net/api",
+        "BMS_SIGNALR_URL": "https://master-bms-notificationmanager.azurewebsites.net/api",
+        "NEGOTIATE_FUNCTION_KEY": "rfr-MAMD1WXnnBUHWZGl2asxezix5vLQ8fhwP1_u1lqBAzFuy3vsAw==",
+        "ACCOUNTMANAGER_FUNCTION_KEY": "Q7g5bfk-NTyZ084-VkIf26QytNAi3rNMD2L3jnWllL3fAzFuXgeHsg=="
+      }
+    }
+  }
+}
