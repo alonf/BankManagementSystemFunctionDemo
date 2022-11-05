@@ -32,7 +32,7 @@ namespace BMS.Accessors.UserInfo
                     collectionName: CollectionName,
                     ConnectionStringSetting = "cosmosDBConnectionString")]
                     DocumentClient documentClient,
-                    [Queue("client-response-queue")] QueueClient queueClient,
+                    [Queue("client-response-queue", Connection = "QueueConnectionString")] QueueClient queueClient,
                     ILogger log)
         {
             string userAccountId = "unknown";
