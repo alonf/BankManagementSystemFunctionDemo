@@ -56,12 +56,12 @@ module redis 'modules/redis.bicep' = {
 }
 var redisConnectionString = redis.outputs.redisConnectionString
 
-module storagequeue 'modules/storagequeue.bicep' = {
-  name: 'storageQueuesDeployment'
-  params: {
-   storageAccountName: storageAccountName
-  }
-}
+//module storagequeue 'modules/storagequeue.bicep' = {
+//  name: 'storageQueuesDeployment'
+//  params: {
+//   storageAccountName: storageAccountName
+//  }
+//}
 
 
 module BMSCheckingAccountAccessorFunctionApp 'modules/functions-app.bicep' = {
