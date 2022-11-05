@@ -12,9 +12,14 @@ public class SignalRWrapper : ISignalRWrapper
     private readonly HubConnection _signalRHubConnection;
     private readonly List<AccountCallbackRequest> _signalRMessagesReceived = new();
     private readonly SemaphoreSlim _signalRMessageReceived = new(0);
+    public ITestOutputHelper TestOutputHelper { get; private set; }
+
+    public IList<AccountCallbackRequest> Messages => _signalRMessagesReceived;
 
     public SignalRWrapper(ITestOutputHelper testOutputHelper, IFunctionKeyProvider keyProvider)
     {
+        TestOutputHelper = testOutputHelper;
+        
         var signalRUrl = Environment.GetEnvironmentVariable("BMS_SIGNALR_URL");
         if (string.IsNullOrEmpty(signalRUrl))
             signalRUrl = "http://localhost:7043/api/";
@@ -82,7 +87,5 @@ public class SignalRWrapper : ISignalRWrapper
         return result;
     }
 
-    IList<AccountCallbackRequest> ISignalRWrapper.Messages => _signalRMessagesReceived;
 
-    public ITestOutputHelper TestOutputHelper { get; }
 }
