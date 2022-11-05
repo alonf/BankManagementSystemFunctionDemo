@@ -117,8 +117,7 @@ module BMSUserInfoAccessorFunctionApp 'modules/functions-app.bicep' = {
     ]
 }
 
-var getAccountIdByEmailUrl = '${BMSUserInfoAccessorFunctionApp}.outputs.functionBaseUrl}/GetAccountIdByEmail?code=${BMSUserInfoAccessorFunctionApp.outputs.functionAppKey}'
-
+var getAccountIdByEmailUrl = '${BMSUserInfoAccessorFunctionApp.outputs.functionBaseUrl}/GetAccountIdByEmail?code=${BMSUserInfoAccessorFunctionApp.outputs.functionAppKey}'
 
 
 module BMSLiabilityValidatorEngineFunctionApp 'modules/functions-app.bicep' = {
