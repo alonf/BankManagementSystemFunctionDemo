@@ -13,7 +13,8 @@ namespace BMS.Managers.Account
                     $"{src.Address}, {src.City}, {src.State} {src.ZipCode}"))
                 .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => Guid.NewGuid().ToString()));
             
-            CreateMap<Contracts.Requests.AccountTransactionInfo, Contracts.Submits.AccountTransactionSubmit>();
+            CreateMap<Contracts.Requests.AccountTransactionInfo, Contracts.Submits.AccountTransactionSubmit>()
+                .ForMember(dest => dest.Ticket, opt => opt.MapFrom(src => (string)null));
         }
     }
 }

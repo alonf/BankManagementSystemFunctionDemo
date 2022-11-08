@@ -48,7 +48,14 @@ namespace BMS.Accessors.CheckingAccount
                 log.LogInformation($"UpdateAccount Queue trigger function processed request id: {requestItem.RequestId}");
 
                 var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
-                await cosmosDBWrapper.UpdateBalanceAsync(requestItem.RequestId, requestItem.AccountId, requestItem.Amount);
+                var updateResult = await cosmosDBWrapper.UpdateBalanceAsync(requestItem.RequestId, requestItem.AccountId, requestItem.Amount, requestItem.Ticket);
+
+                if (!updateResult.success)
+                {
+                    responseCallBack.IsSuccessful = false;
+                    responseCallBack.ResultMessage = updateResult.errorMessage;
+                }
+
                 await responseQueue.AddAsync(responseCallBack);
             }
             catch(Exception ex)
@@ -83,11 +90,12 @@ namespace BMS.Accessors.CheckingAccount
            }
 
             var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
-            var balance = await cosmosDBWrapper.GetBalanceAsync(accountId);
+            var (balance, ticket) = await cosmosDBWrapper.GetBalanceAsync(accountId);
             var balanceInfo = new BalanceInfo()
             {
                 AccountId = accountId,
-                Balance = balance
+                Balance = balance,
+                Ticket = ticket
             };
             return new OkObjectResult(balanceInfo);
         }

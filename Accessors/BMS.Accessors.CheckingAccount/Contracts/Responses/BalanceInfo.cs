@@ -4,5 +4,6 @@
     {
         public string AccountId { get; set; }
         public decimal Balance { get; set; }
+        public string Ticket { get; set; }
     }
 }

@@ -302,16 +302,18 @@ namespace BMS.Managers.Account
                 }
 
                 //This is a naive solution, concurrent request may withdraw more monet than allowed
-                if (!await CheckLiabilityAsync(data.AccountId, data.Amount))
+                var liabilityCheckResult = await CheckLiabilityAsync(data.AccountId, data.Amount);
+                if (!liabilityCheckResult.valid)
                 {
                     _logger.LogInformation("Withdraw request failed, the withdraw operation is forbidden");
                     return new BadRequestErrorMessageResult("The user is not allowed to withdraw");
                 }
 
                 data.Amount = -data.Amount;
+
                 //create a customer registration request for the User accessor
                 var accountTransactionSubmit = _mapper.Map<Contracts.Submits.AccountTransactionSubmit>(data);
-               
+                accountTransactionSubmit.Ticket = liabilityCheckResult.ticket; //make sure the account balance status has not changed
                 //push the customer registration request
                 await accountTransactionQueue.AddAsync(accountTransactionSubmit);
                 _logger.LogInformation($"Withdraw request added for account: {accountTransactionSubmit.AccountId}");
@@ -330,7 +332,7 @@ namespace BMS.Managers.Account
             }
         }
 
-        private async Task<bool> CheckLiabilityAsync(string accountId, decimal amount)
+        private async Task<(bool valid, string ticket)> CheckLiabilityAsync(string accountId, decimal amount)
         {
             //Check liability
             var liabilityValidatorUrl = _configuration["liabilityValidatorUrl"];
@@ -356,7 +358,7 @@ namespace BMS.Managers.Account
                 throw new Exception("liabilityValidator service returned an error");
             }
 
-            return liabilityCheckResultJson["withdrawAllowed"].Value<bool>();
+            return (liabilityCheckResultJson["withdrawAllowed"].Value<bool>(), liabilityCheckResultJson["ticket"].Value<string>());
         }
     }
 }
