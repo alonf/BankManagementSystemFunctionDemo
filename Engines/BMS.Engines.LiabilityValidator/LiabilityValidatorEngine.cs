@@ -81,16 +81,17 @@ namespace BMS.Engines.LiabilityValidator
             
             decimal balance = getBalanceResult.value.Value;
             decimal overdraftLimit = -getOverdraftLimitResult.value.Value;
+            string ticket = getBalanceResult.ticket;
 
             var withdrawAllowed = balance - amount >= overdraftLimit;
             _logger.LogInformation($"Withdrawing {amount} from account id: {accountId} with balance of {balance} is" +
                                    (withdrawAllowed ? string.Empty : "not ") +
                                   $"allowed. The overdraft limit is: {overdraftLimit}");
             
-            return new OkObjectResult(JObject.Parse($"{{'withdrawAllowed':'{withdrawAllowed}'}}"));
+            return new OkObjectResult(JObject.Parse($"{{'withdrawAllowed':'{withdrawAllowed}', 'ticket':'{ticket}'}}"));
         }
 
-        private async Task<(IActionResult result, decimal? value)> QueryAccountInformationAsync(string serviceUrl, string accountId, string jsonProperty)
+        private async Task<(IActionResult result, decimal? value, string ticket)> QueryAccountInformationAsync(string serviceUrl, string accountId, string jsonProperty)
         {
             string accountInfoJson;
             //call checking account Accessor to get the account balance
@@ -102,28 +103,36 @@ namespace BMS.Engines.LiabilityValidator
             catch (Exception e) //todo: change to the not fount http result in such case
             {
                 _logger.LogError($"Error account id:{accountId} not found. Exception: {e}");
-                return (new NotFoundObjectResult(JObject.Parse("{'withdrawAllowed':'false'}")), null);
+                return (new NotFoundObjectResult(JObject.Parse("{'withdrawAllowed':'false'}")), null, null);
             }
-
+            
             decimal? value;
+            string? ticket;
             try
             {
-                value = JObject.Parse(accountInfoJson)?.GetValue(jsonProperty)?.Value<decimal?>();
+                var json = JObject.Parse(accountInfoJson);
+                value = json?.GetValue(jsonProperty)?.Value<decimal?>();
                 if (value == null)
                 {
                     _logger.LogError($"Error when trying to get the {jsonProperty} from account id:{accountId}");
-                    return (new InternalServerErrorResult(), null);
+                    return (new InternalServerErrorResult(), null, null);
                 }
                 _logger.LogInformation($"{serviceUrl} returned: {accountInfoJson}");
 
+                ticket = json.GetValue("ticket")?.Value<string?>();
+                if (string.IsNullOrEmpty(ticket))
+                {
+                    _logger.LogError($"no _etag for this operation:{serviceUrl}");
+                }
+                _logger.LogInformation($"{serviceUrl} returned: {accountInfoJson}");
             }
             catch (Exception e)
             {
                 _logger.LogError($"Error when trying to call {serviceUrl} with account id:{accountId}, exception:{e}");
-                return (new InternalServerErrorResult(), null);
+                return (new InternalServerErrorResult(), null, null);
             }
 
-            return (new OkObjectResult(string.Empty), value);
+            return (new OkObjectResult(string.Empty), value, ticket);
         }
     }
 }

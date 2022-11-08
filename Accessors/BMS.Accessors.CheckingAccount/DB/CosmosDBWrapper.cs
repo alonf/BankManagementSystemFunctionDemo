@@ -89,7 +89,7 @@ namespace BMS.Accessors.CheckingAccount.DB
             throw new Exception("Error creating account document");
         }
 
-        public async Task UpdateBalanceAsync(string requestId, string accountId, decimal amount)
+        public async Task<(bool success, string errorMessage)> UpdateBalanceAsync(string requestId, string accountId, decimal amount, string ticket)
         {
             try
             {
@@ -116,20 +116,47 @@ namespace BMS.Accessors.CheckingAccount.DB
                 if (accountInfo.AccountTransactions.Contains(transactionRecord.Id))
                 {
                     _logger.LogError($"UpdateBalanceAsync: {transactionRecord.Id} already processed");
-                    return;
+                    return (false, "Transaction already processed");
                 }
                 accountInfo.AccountTransactions.Add(transactionRecord.Id);
                 accountInfo.AccountBalance += transactionRecord.TransactionAmount;
 
-                var ac = new AccessCondition { Condition = accountInfo.ETag, Type = AccessConditionType.IfMatch };
+                //in case of withdraw we check against the etag that was returned from the validity check.
+                //otherwise we check against the last read etag.
+                var ac = new AccessCondition { Condition = string.IsNullOrEmpty(ticket) ? accountInfo.ETag : ticket, Type = AccessConditionType.IfMatch };
 
                 //throws exception on concurrency conflicts => retry
                 await _documentClient.ReplaceDocumentAsync(accountInfo.Self, accountInfo,
                     new RequestOptions { AccessCondition = ac });
+
+                return (true, "ok");
+            }
+            //catch etag mismatch
+            catch (DocumentClientException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
+                {
+                    _logger.LogError($"UpdateBalanceAsync: {requestId} etag mismatch");
+                    if (string.IsNullOrEmpty(ticket))
+                    {
+                        _logger.LogError($"UpdateBalanceAsync: ticket is null, retrying updating balance");
+                        throw;
+                    }
+                    else
+                    {
+                        _logger.LogError($"UpdateBalanceAsync: account balance has changed since the last validity check");
+                        return (false, "Account balance has changed since the last validity check");
+                    }
+                 }
+                else //no precondition fail, retry
+                {
+                    _logger.LogError($"UpdateBalanceAsync: {requestId} error updating balance. Exception: {ex}");
+                    throw;
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"UpdateBalanceAsync: exception: {ex}");
+                _logger.LogError($"UpdateBalanceAsync: {requestId} error updating balance. Exception: {ex}");
                 throw;
             }
         }
@@ -215,7 +242,7 @@ namespace BMS.Accessors.CheckingAccount.DB
             }
         }
 
-        public async Task<decimal> GetBalanceAsync(string accountId)
+        public async Task<(decimal balance, string ticket)> GetBalanceAsync(string accountId)
         {
             //get the account record
             AccountInfo accountInfo = await GetAccountInfoAsync(accountId);
@@ -226,7 +253,7 @@ namespace BMS.Accessors.CheckingAccount.DB
                 throw new KeyNotFoundException();
             }
 
-            return accountInfo.AccountBalance;
+            return (accountInfo.AccountBalance, accountInfo.ETag);
         }
 
         public async Task SetAccountBalanceLowLimitAsync(string accountId, decimal limit)
