@@ -3,27 +3,26 @@ using Microsoft.Extensions.DependencyInjection;
 
 [assembly: FunctionsStartup(typeof(BMS.Managers.Notification.Startup))]
 
-namespace BMS.Managers.Notification
-{
-    internal class Startup : FunctionsStartup
-    {
-        public override void Configure(IFunctionsHostBuilder builder)
-        {
-            var defaultCorsPolicyName = "myAllowSpecificOrigins";
+namespace BMS.Managers.Notification;
 
-            builder.Services.AddCors(options =>
+internal class Startup : FunctionsStartup
+{
+    public override void Configure(IFunctionsHostBuilder builder)
+    {
+        var defaultCorsPolicyName = "myAllowSpecificOrigins";
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(defaultCorsPolicyName, b =>
             {
-                options.AddPolicy(defaultCorsPolicyName, b =>
-                {
-                    //App:CorsOrigins in appsettings.json can contain more than one address with split by comma.
-                    b.SetIsOriginAllowed((_) => true)
-                     .SetIsOriginAllowedToAllowWildcardSubdomains()
-                     .AllowAnyHeader()
-                     .AllowAnyMethod()
-                     .AllowCredentials()
-                     .WithHeaders("Access-Control-Allow-Origin", "*");
-                });
+                //App:CorsOrigins in appsettings.json can contain more than one address with split by comma.
+                b.SetIsOriginAllowed((_) => true)
+                    .SetIsOriginAllowedToAllowWildcardSubdomains()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .WithHeaders("Access-Control-Allow-Origin", "*");
             });
-        }
+        });
     }
 }

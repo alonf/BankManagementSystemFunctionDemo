@@ -3,7 +3,6 @@ using BMS.Tests.IntegrationTests.Logging;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace BMS.Tests.IntegrationTests;
 
@@ -12,7 +11,7 @@ public class SignalRWrapper : ISignalRWrapper
     private readonly HubConnection _signalRHubConnection;
     private readonly List<AccountCallbackRequest> _signalRMessagesReceived = new();
     private readonly SemaphoreSlim _signalRMessageReceived = new(0);
-    public ITestOutputHelper TestOutputHelper { get; private set; }
+    public ITestOutputHelper TestOutputHelper { get; }
 
     public IList<AccountCallbackRequest> Messages => _signalRMessagesReceived;
 

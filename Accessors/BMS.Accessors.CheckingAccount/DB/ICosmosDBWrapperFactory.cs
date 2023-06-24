@@ -1,10 +1,9 @@
 ﻿using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Logging;
 
-namespace BMS.Accessors.CheckingAccount.DB
+namespace BMS.Accessors.CheckingAccount.DB;
+
+public interface ICosmosDBWrapperFactory
 {
-    public interface ICosmosDBWrapperFactory
-    {
-        ICosmosDBWrapper Create(DocumentClient documentClient, string databaseName, ILogger logger);
-    }
+    ICosmosDBWrapper Create(DocumentClient documentClient, string databaseName, ILogger logger);
 }

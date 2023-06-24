@@ -1,17 +1,16 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace BMS.Accessors.CheckingAccount.DB
+namespace BMS.Accessors.CheckingAccount.DB;
+
+public class AccountTransactionRecord
 {
-    public class AccountTransactionRecord
-    {
-        [JsonProperty("id")]
-        public string Id { get; set; }
-        [JsonProperty("accountId")]
-        public string AccountId { get; set; }
-        [JsonProperty("transactionAmount")]
-        public decimal TransactionAmount { get; set; }
-        [JsonProperty("transactionTime")]
-        public DateTimeOffset TransactionTime { get; set; }
-    }
+    [JsonProperty("id")]
+    public string Id { get; set; }
+    [JsonProperty("accountId")]
+    public string AccountId { get; set; }
+    [JsonProperty("transactionAmount")]
+    public decimal TransactionAmount { get; set; }
+    [JsonProperty("transactionTime")]
+    public DateTimeOffset TransactionTime { get; set; }
 }

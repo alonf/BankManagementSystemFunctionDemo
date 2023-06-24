@@ -34,7 +34,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
           6.0.x
@@ -68,7 +68,7 @@ jobs:
              
     - name: Dump docker logs on failure
       if: failure()
-      uses: jwalton/gh-docker-logs@v1
+      uses: jwalton/gh-docker-logs@v2
     - name: Stop containers
       if: always()
       run: docker compose down

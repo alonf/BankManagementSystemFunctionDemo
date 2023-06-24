@@ -1,7 +1,6 @@
-﻿namespace BMS.Tests.IntegrationTests
+﻿namespace BMS.Tests.IntegrationTests;
+
+public interface IFunctionKeyProvider
 {
-    public interface IFunctionKeyProvider
-    {
-        string GetKey(string functionName);
-    }
+    string GetKey(string functionName);
 }

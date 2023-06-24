@@ -7,7 +7,7 @@ param queueNames array = [
 ]
 
 
-resource queues 'Microsoft.Storage/storageAccounts/queueServices/queues@2022-05-01' = [for queueName in queueNames: {
+resource queues 'Microsoft.Storage/storageAccounts/queueServices/queues@2022-09-01' = [for queueName in queueNames: {
   name: '${storageAccountName}/${queueName}'
   properties: {
   }
