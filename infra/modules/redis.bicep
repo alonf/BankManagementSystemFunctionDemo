@@ -1,6 +1,6 @@
 param redisCacheName string
 param location string
-resource redisCache 'Microsoft.Cache/Redis@2022-06-01' = {
+resource redisCache 'Microsoft.Cache/redis@2022-06-01' = {
   name: redisCacheName
   location: location
   properties: {

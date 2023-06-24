@@ -7,7 +7,7 @@ param hostingPlanId string
 param additionalAppSettings array = []
 
 
-resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
+resource functionApp 'Microsoft.Web/sites@2022-09-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp'

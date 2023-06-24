@@ -11,156 +11,155 @@ using System;
 using System.Threading.Tasks;
 using System.Web.Http;
 
-namespace BMS.Accessors.CheckingAccount
+namespace BMS.Accessors.CheckingAccount;
+
+public class CheckingAccountAccessor
 {
-    public class CheckingAccountAccessor
+    const string DatabaseName = "BMSDB";
+    const string CollectionName = "AccountTransaction";
+    private readonly ICosmosDBWrapperFactory _cosmosDBWrapperFactory;
+
+    public CheckingAccountAccessor(ICosmosDBWrapperFactory cosmosDBWrapperFactory)
     {
-        const string DatabaseName = "BMSDB";
-        const string CollectionName = "AccountTransaction";
-        private readonly ICosmosDBWrapperFactory _cosmosDBWrapperFactory;
+        _cosmosDBWrapperFactory = cosmosDBWrapperFactory;
+    }
 
-        public CheckingAccountAccessor(ICosmosDBWrapperFactory cosmosDBWrapperFactory)
+    [FunctionName("UpdateAccount")]
+    public async Task UpdateAccountAsync([QueueTrigger("account-transaction-queue", Connection = "QueueConnectionString")] AccountTransactionRequest requestItem,
+        [CosmosDB(
+            databaseName: DatabaseName,
+            collectionName: CollectionName,
+            ConnectionStringSetting = "cosmosDBConnectionString")]
+        DocumentClient documentClient, 
+        [Queue("client-response-queue", Connection = "QueueConnectionString")] IAsyncCollector<AccountCallbackResponse> responseQueue,
+        ILogger log)
+    {
+        var responseCallBack = new AccountCallbackResponse()
         {
-            _cosmosDBWrapperFactory = cosmosDBWrapperFactory;
-        }
+            AccountId = requestItem.AccountId,
+            RequestId = requestItem.RequestId,
+            ActionName = requestItem.Amount > 0 ? "Deposit" : "Withdraw",
+            IsSuccessful = true,
+            ResultMessage = "Account Balance Updated"
+        };
 
-        [FunctionName("UpdateAccount")]
-        public async Task UpdateAccountAsync([QueueTrigger("account-transaction-queue", Connection = "QueueConnectionString")] AccountTransactionRequest requestItem,
-                [CosmosDB(
-                    databaseName: DatabaseName,
-                    collectionName: CollectionName,
-                    ConnectionStringSetting = "cosmosDBConnectionString")]
-                    DocumentClient documentClient, 
-                [Queue("client-response-queue", Connection = "QueueConnectionString")] IAsyncCollector<AccountCallbackResponse> responseQueue,
-                    ILogger log)
+        try
         {
-            var responseCallBack = new AccountCallbackResponse()
+            log.LogInformation($"UpdateAccount Queue trigger function processed request id: {requestItem.RequestId}");
+
+            var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
+            var updateResult = await cosmosDBWrapper.UpdateBalanceAsync(requestItem.RequestId, requestItem.AccountId, requestItem.Amount, requestItem.Ticket);
+
+            if (!updateResult.success)
             {
-                AccountId = requestItem.AccountId,
-                RequestId = requestItem.RequestId,
-                ActionName = requestItem.Amount > 0 ? "Deposit" : "Withdraw",
-                IsSuccessful = true,
-                ResultMessage = "Account Balance Updated"
-            };
-
-            try
-            {
-                log.LogInformation($"UpdateAccount Queue trigger function processed request id: {requestItem.RequestId}");
-
-                var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
-                var updateResult = await cosmosDBWrapper.UpdateBalanceAsync(requestItem.RequestId, requestItem.AccountId, requestItem.Amount, requestItem.Ticket);
-
-                if (!updateResult.success)
-                {
-                    responseCallBack.IsSuccessful = false;
-                    responseCallBack.ResultMessage = updateResult.errorMessage;
-                }
-
-                await responseQueue.AddAsync(responseCallBack);
-            }
-            catch(Exception ex)
-            {
-                log.LogError($"UpdateAccountAsync: error: {ex}");
                 responseCallBack.IsSuccessful = false;
-                responseCallBack.ResultMessage = "Error updating the balance. Retrying";
-                await responseQueue.AddAsync(responseCallBack);
-
-                throw; //retry, todo: check if the error is transient to spare the retry
+                responseCallBack.ResultMessage = updateResult.errorMessage;
             }
-        }
 
-        [FunctionName("GetBalance")]
-        public async Task<IActionResult> GetBalanceAsync(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
-            [CosmosDB(
-                    databaseName: DatabaseName,
-                    collectionName: CollectionName,
-                    ConnectionStringSetting = "cosmosDBConnectionString")]
-                    DocumentClient documentClient,
-            ILogger log)
+            await responseQueue.AddAsync(responseCallBack);
+        }
+        catch(Exception ex)
         {
-            log.LogInformation("GetBalance HTTP trigger function processed a request.");
+            log.LogError($"UpdateAccountAsync: error: {ex}");
+            responseCallBack.IsSuccessful = false;
+            responseCallBack.ResultMessage = "Error updating the balance. Retrying";
+            await responseQueue.AddAsync(responseCallBack);
 
-            string accountId = req.Query["accountId"];
-
-           if (string.IsNullOrEmpty(accountId))
-           {
-                log.LogError("GetBalance: missing account id parameter");
-                return new BadRequestErrorMessageResult("missing accountId parameter");
-           }
-
-            var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
-            var (balance, ticket) = await cosmosDBWrapper.GetBalanceAsync(accountId);
-            var balanceInfo = new BalanceInfo()
-            {
-                AccountId = accountId,
-                Balance = balance,
-                Ticket = ticket
-            };
-            return new OkObjectResult(balanceInfo);
+            throw; //retry, todo: check if the error is transient to spare the retry
         }
+    }
 
+    [FunctionName("GetBalance")]
+    public async Task<IActionResult> GetBalanceAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
+        [CosmosDB(
+            databaseName: DatabaseName,
+            collectionName: CollectionName,
+            ConnectionStringSetting = "cosmosDBConnectionString")]
+        DocumentClient documentClient,
+        ILogger log)
+    {
+        log.LogInformation("GetBalance HTTP trigger function processed a request.");
 
-        [FunctionName("GetAccountInfo")]
-        public async Task<IActionResult> GetAccountInfoAsync(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
-            [CosmosDB(
-                databaseName: DatabaseName,
-                collectionName: CollectionName,
-                ConnectionStringSetting = "cosmosDBConnectionString")]
-            DocumentClient documentClient,
-            ILogger log)
+        string accountId = req.Query["accountId"];
+
+        if (string.IsNullOrEmpty(accountId))
         {
-            log.LogInformation("GetAccountInfo HTTP trigger function processed a request.");
-
-            string accountId = req.Query["accountId"];
-
-            if (string.IsNullOrEmpty(accountId))
-            {
-                log.LogError("GetAccountInfo: missing account id parameter");
-                return new BadRequestErrorMessageResult("missing accountId parameter");
-            }
-
-            var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
-            var accountInfo = await cosmosDBWrapper.GetAccountInfoAsync(accountId);
-            
-            return new OkObjectResult(accountInfo);
+            log.LogError("GetBalance: missing account id parameter");
+            return new BadRequestErrorMessageResult("missing accountId parameter");
         }
 
-        [FunctionName("GetAccountTransactionHistory")]
-        public async Task<IActionResult> GetAccountTransactionHistoryAsync(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
-            [CosmosDB(
-                    databaseName: DatabaseName,
-                    collectionName: CollectionName,
-                    ConnectionStringSetting = "cosmosDBConnectionString")]
-                    DocumentClient documentClient,
-            ILogger log)
+        var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
+        var (balance, ticket) = await cosmosDBWrapper.GetBalanceAsync(accountId);
+        var balanceInfo = new BalanceInfo()
         {
-            log.LogInformation("GetAccountTransactionHistoryAsync HTTP trigger function processed a request.");
+            AccountId = accountId,
+            Balance = balance,
+            Ticket = ticket
+        };
+        return new OkObjectResult(balanceInfo);
+    }
 
-            string accountId = req.Query["accountId"];
 
-            if (string.IsNullOrEmpty(accountId))
-            {
-                log.LogError("GetAccountTransactionHistory: missing account id parameter");
-                return new BadRequestErrorMessageResult("missing accountId parameter");
-            }
-            
-            string numberOfTransactionsText = req.Query["numberOfTransactions"];
+    [FunctionName("GetAccountInfo")]
+    public async Task<IActionResult> GetAccountInfoAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
+        [CosmosDB(
+            databaseName: DatabaseName,
+            collectionName: CollectionName,
+            ConnectionStringSetting = "cosmosDBConnectionString")]
+        DocumentClient documentClient,
+        ILogger log)
+    {
+        log.LogInformation("GetAccountInfo HTTP trigger function processed a request.");
 
-            if (string.IsNullOrEmpty(numberOfTransactionsText))
-            {
-                log.LogError("GetAccountTransactionHistory: missing numberOfTransactions parameter");
-                return new BadRequestErrorMessageResult("missing numberOfTransactions parameter");
-            }
-            
-            var numberOfTransactions = int.Parse(numberOfTransactionsText);
+        string accountId = req.Query["accountId"];
 
-            var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
-            var transactions = await cosmosDBWrapper.GetAccountTransactionHistoryAsync(accountId, numberOfTransactions);
-            
-            return new OkObjectResult(transactions);
+        if (string.IsNullOrEmpty(accountId))
+        {
+            log.LogError("GetAccountInfo: missing account id parameter");
+            return new BadRequestErrorMessageResult("missing accountId parameter");
         }
+
+        var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
+        var accountInfo = await cosmosDBWrapper.GetAccountInfoAsync(accountId);
+            
+        return new OkObjectResult(accountInfo);
+    }
+
+    [FunctionName("GetAccountTransactionHistory")]
+    public async Task<IActionResult> GetAccountTransactionHistoryAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
+        [CosmosDB(
+            databaseName: DatabaseName,
+            collectionName: CollectionName,
+            ConnectionStringSetting = "cosmosDBConnectionString")]
+        DocumentClient documentClient,
+        ILogger log)
+    {
+        log.LogInformation("GetAccountTransactionHistoryAsync HTTP trigger function processed a request.");
+
+        string accountId = req.Query["accountId"];
+
+        if (string.IsNullOrEmpty(accountId))
+        {
+            log.LogError("GetAccountTransactionHistory: missing account id parameter");
+            return new BadRequestErrorMessageResult("missing accountId parameter");
+        }
+            
+        string numberOfTransactionsText = req.Query["numberOfTransactions"];
+
+        if (string.IsNullOrEmpty(numberOfTransactionsText))
+        {
+            log.LogError("GetAccountTransactionHistory: missing numberOfTransactions parameter");
+            return new BadRequestErrorMessageResult("missing numberOfTransactions parameter");
+        }
+            
+        var numberOfTransactions = int.Parse(numberOfTransactionsText);
+
+        var cosmosDBWrapper = _cosmosDBWrapperFactory.Create(documentClient, DatabaseName, log);
+        var transactions = await cosmosDBWrapper.GetAccountTransactionHistoryAsync(accountId, numberOfTransactions);
+            
+        return new OkObjectResult(transactions);
     }
 }

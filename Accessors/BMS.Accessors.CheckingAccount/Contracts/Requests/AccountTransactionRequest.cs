@@ -1,15 +1,14 @@
-﻿namespace BMS.Accessors.CheckingAccount.Contracts.Requests
+﻿namespace BMS.Accessors.CheckingAccount.Contracts.Requests;
+
+public class AccountTransactionRequest
 {
-    public class AccountTransactionRequest
-    {
-        public string RequestId { get; set; }
+    public string RequestId { get; set; }
 
-        public string SchemaVersion { get; set; }
+    public string SchemaVersion { get; set; }
 
-        public string AccountId { get; set; }
+    public string AccountId { get; set; }
 
-        public decimal Amount { get; set; }
+    public decimal Amount { get; set; }
 
-        public string Ticket { get; set; }
-    }
+    public string Ticket { get; set; }
 }

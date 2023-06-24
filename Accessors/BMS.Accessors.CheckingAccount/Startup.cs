@@ -7,16 +7,15 @@ using Newtonsoft.Json.Serialization;
 
 [assembly: FunctionsStartup(typeof(BMS.Accessors.CheckingAccount.Startup))]
 
-namespace BMS.Accessors.CheckingAccount
-{
-    internal class Startup : FunctionsStartup
-    {
-        public override void Configure(IFunctionsHostBuilder builder)
-        {
-            builder.Services.AddRobustHttpClient<CheckingAccountAccessor>();
-            builder.Services.AddSingleton<ICosmosDBWrapperFactory, CosmosDBWrapperFactory>();
+namespace BMS.Accessors.CheckingAccount;
 
-            JsonConvert.DefaultSettings = () => new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
-        }
+internal class Startup : FunctionsStartup
+{
+    public override void Configure(IFunctionsHostBuilder builder)
+    {
+        builder.Services.AddRobustHttpClient<CheckingAccountAccessor>();
+        builder.Services.AddSingleton<ICosmosDBWrapperFactory, CosmosDBWrapperFactory>();
+
+        JsonConvert.DefaultSettings = () => new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
     }
 }
